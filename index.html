@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>beatbox</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 100vw; height: 100vh; overflow: hidden; background: #ffffff; }
+    svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+    .main-content {
+      position: fixed;
+      border: 3px solid #000000;
+      left: 9%;
+      top: 21.5%;
+      width: calc(90% - 7%);
+      height: calc(67% - 23.5%);
+      overflow-y: scroll;
+      font-family: -apple-system, "Helvetica Neue", sans-serif;
+      font-size: 11px;
+    }
+    .tracklist {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .tracklist thead th {
+      position: sticky;
+      top: 0;
+      background: #e8e8e8;
+      border-bottom: 1px solid #b0b0b0;
+      padding: 2px 8px;
+      text-align: left;
+      font-weight: normal;
+      color: #333;
+      white-space: nowrap;
+    }
+    .tracklist tbody tr:nth-child(odd)  { background: #f5f5f5; }
+    .tracklist tbody tr:nth-child(even) { background: #ffffff; }
+    .tracklist tbody tr:hover { background: #dce8f7; }
+    .tracklist tbody tr.playing { background: inherit; }
+    .tracklist td {
+      padding: 2px 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+    .tracklist td.num { color: #888; text-align: right; width: 24px; max-width: 24px; }
+    .tracklist td.bookmark { text-align: center; width: 24px; cursor: pointer; color: #aaa; }
+    .tracklist td.bookmark.starred { color: hotpink; }
+    .transport {
+      position: fixed;
+      left: 32%;
+      top: 71%;
+      width: calc(66% - 32%);
+      height: calc(90% - 71%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: transparent;
+    }
+    .transport__btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      background: radial-gradient(circle at 40% 35%, #ffffff, #b0b0b0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.8);
+      color: #333;
+    }
+    .transport__btn:active {
+      background: radial-gradient(circle at 40% 35%, #d0d0d0, #888);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+    }
+    .transport__volume {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 10px;
+      color: #666;
+      font-size: 11px;
+    }
+    .transport__slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80px;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #c0c0c0, #e8e8e8);
+      outline: none;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .transport__slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #ffffff, #a0a0a0);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <svg class="layout" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <g class="top-bar">
+      <polygon class="top-bar__bg-fill"
+        points="0,0 100,0 100,12 50,12 40,19 10,19 0,12"
+        fill="black"
+        stroke="none"
+      />
+      <polygon class="top-bar__fill"
+        points="0,0 100,0 100,10 50,10 40,17 10,17 0,10"
+        fill="white"
+        stroke="none"
+      />
+    </g>
+
+    <g class="side-bar">
+      <polygon class="side-bar__bg-fill"
+        points="0,17 6,21.5 6,68 26,68 29,71 29,93 66,93 73,100 0,100"
+        fill="black"
+        stroke="none"
+      />
+      <polygon class="side-bar__fill"
+        points="0,20 5,23.5 5,70 25,70 28,73 28,95 65,95 70,100 0,100"
+        fill="white"
+        stroke="none"
+      />
+      <!-- bookmarks star-->
+      <polygon class="side-nav__star" points="2.5,26 3,27.5 4.5,27.5 3.3,28.4 3.8,30 2.5,29.1 1.2,30 1.7,28.4 0.5,27.5 2,27.5" fill="hotpink"/>
+      <!-- envelope -->
+      <rect x="0.5" y="33" width="4" height="2.8" fill="none" stroke="black" stroke-width="0.2"/>
+      <polyline points="0.5,33 2.5,34.6 4.5,33" fill="none" stroke="black" stroke-width="0.2"/>
+    </g>
+
+    <g class="header-panel">
+      <rect x="40" y="12" width="40" height="10" fill="white" stroke="black" stroke-width="0.2"/>
+    </g>
+
+    <g class="bottom-panel">
+      <polygon class="bottom-panel__fill"
+        points="32,71 66,71 66,90 32,90"
+        fill="white"
+        stroke="black"
+        stroke-width="0.3"
+      />
+      <line x1="42" y1="73.5" x2="56" y2="73.5" stroke="black" stroke-width="0.4"/>
+      <circle id="slider-knob" cx="49" cy="73.5" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:ew-resize"/>
+      <!-- prev -->
+      <circle class="prev" cx="42" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
+      <line x1="40.2" y1="79" x2="40.2" y2="82" stroke="black" stroke-width="0.4"/>
+      <polygon points="43.6,79 40.6,80.5 43.6,82" fill="black"/>
+      <!-- next -->
+      <circle class="next" cx="56" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
+      <line x1="57.8" y1="79" x2="57.8" y2="82" stroke="black" stroke-width="0.4"/>
+      <polygon points="54.4,79 57.4,80.5 54.4,82" fill="black"/>
+      <!-- play -->
+      <circle class="play-pause" cx="49" cy="80.5" r="4.5" fill="white" stroke="black" stroke-width="0.2"/>
+      <polygon points="47.5,78.5 52,80.5 47.5,82.5" fill="black"/>
+      <!-- time -->
+      <rect x="39" y="86" width="20" height="3" fill="none" stroke="black" stroke-width="0.2"/>
+    </g>
+  </svg>
+  
+  <div class="main-content">
+    <table class="tracklist">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Artist</th>
+          <th>Time</th>
+          <th>★</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Track Title</td><td>Artist</td><td>3:24</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>4:01</td><td class="bookmark starred">★</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>2:55</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>5:12</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>3:44</td><td class="bookmark starred">★</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>4:30</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>3:10</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>2:48</td><td class="bookmark starred">★</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>6:02</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>3:33</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>4:15</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>3:50</td><td class="bookmark starred">★</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>2:30</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>5:05</td><td class="bookmark">☆</td></tr>
+        <tr><td>Track Title</td><td>Artist</td><td>3:22</td><td class="bookmark">☆</td></tr>
+      </tbody>
+    </table>
+  </div>
+<script>
+  const knob = document.getElementById('slider-knob');
+  const svg = document.querySelector('svg.layout');
+  const minX = 42, maxX = 56;
+  let dragging = false;
+
+  knob.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
+  window.addEventListener('mouseup', () => { dragging = false; });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const rect = svg.getBoundingClientRect();
+    const svgX = (e.clientX - rect.left) / rect.width * 100;
+    knob.setAttribute('cx', Math.min(maxX, Math.max(minX, svgX)));
+  });
+</script>
+</body>
+</html>
