@@ -4,162 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>beatbox</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { width: 100vw; height: 100vh; overflow: hidden; background: #ffffff; }
-    svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-    .list-container {
-      position: fixed;
-      border: 3px solid #000000;
-      left: 9%;
-      top: 21.5%;
-      width: calc(90% - 7%);
-      height: calc(67% - 23.5%);
-      overflow-y: scroll;
-      font-family: -apple-system, "Helvetica Neue", sans-serif;
-      font-size: 11px;
-    }
-    .carousel-container {
-      position: fixed;
-      border: 3px solid #000000;
-      left: 9%;
-      top: 21.5%;
-      width: calc(90% - 7%);
-      height: calc(67% - 23.5%);
-      overflow: hidden;
-      font-family: -apple-system, "Helvetica Neue", sans-serif;
-      font-size: 11px;
-      perspective: 1100px;
-    }
-    .carousel-item {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 22%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      cursor: pointer;
-      font-size: 1.3em;
-      transition: transform 0.45s ease, opacity 0.45s ease;
-    }
-    .carousel-item__artwork {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 6px, #e2e2e2 6px, #e2e2e2 12px);
-      margin-bottom: 6px;
-      overflow: hidden;
-    }
-    .carousel-item__artwork img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .carousel-item__title {
-      font-weight: 500;
-      color: #333;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-    .carousel-item__artist {
-      color: #999;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-      margin-top: 1px;
-    }
-    .tracklist {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .tracklist thead th {
-      position: sticky;
-      top: 0;
-      background: #e8e8e8;
-      border-bottom: 1px solid #b0b0b0;
-      padding: 2px 8px;
-      text-align: left;
-      font-weight: normal;
-      color: #333;
-      white-space: nowrap;
-    }
-    .tracklist tbody tr:nth-child(odd)  { background: #f5f5f5; }
-    .tracklist tbody tr:nth-child(even) { background: #ffffff; }
-    .tracklist tbody tr:hover { background: #dce8f7; }
-    .tracklist tbody tr.playing { background: inherit; }
-    .tracklist td {
-      padding: 2px 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 180px;
-    }
-    .tracklist td.num { color: #888; text-align: right; width: 24px; max-width: 24px; }
-    .tracklist td.bookmark { text-align: center; width: 24px; cursor: pointer; color: #aaa; }
-    .tracklist td.bookmark.starred { color: hotpink; }
-    .transport {
-      position: fixed;
-      left: 32%;
-      top: 71%;
-      width: calc(66% - 32%);
-      height: calc(90% - 71%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: transparent;
-    }
-    .transport__btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      background: radial-gradient(circle at 40% 35%, #ffffff, #b0b0b0);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.8);
-      color: #333;
-    }
-    .transport__btn:active {
-      background: radial-gradient(circle at 40% 35%, #d0d0d0, #888);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
-    }
-    .transport__volume {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-left: 10px;
-      color: #666;
-      font-size: 11px;
-    }
-    .transport__slider {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 80px;
-      height: 6px;
-      border-radius: 3px;
-      background: linear-gradient(to right, #c0c0c0, #e8e8e8);
-      outline: none;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
-    }
-    .transport__slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, #ffffff, #a0a0a0);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <svg class="layout" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -201,9 +46,12 @@
       <rect x="0.5" y="33" width="4" height="2.8" fill="none" stroke="black" stroke-width="0.2"/>
       <polyline points="0.5,33 2.5,34.6 4.5,33" fill="none" stroke="black" stroke-width="0.2"/>
       <!-- upload -->
-      <rect x="0.5" y="38.5" width="4" height="2.8" fill="none" stroke="black" stroke-width="0.2"/>
-      <line x1="2.5" y1="41.3" x2="2.5" y2="43.5" stroke="black" stroke-width="0.2"/>
-      <polyline points="1.5,41.8 2.5,40.8 3.5,41.8" fill="none" stroke="black" stroke-width="0.2"/>
+      <g class="btn upload" style="cursor:pointer">
+        <title>Upload</title>
+        <rect x="0.5" y="38.5" width="4" height="2.8" fill="white" stroke="black" stroke-width="0.2"/>
+        <line x1="2.5" y1="41.3" x2="2.5" y2="43.5" stroke="black" stroke-width="0.2"/>
+        <polygon points="1.5,41.8 2.5,40.8 3.5,41.8" fill="white" stroke="black" stroke-width="0.2"/>
+      </g>
     </g>
 
     <g class="header-panel">
@@ -287,6 +135,14 @@
 
   <div class="carousel-container">
   </div>
+
+  <div class="upload-container">
+    <div class="upload-container__box">
+      <svg viewBox="0 0 100 300" preserveAspectRatio="xMinYMin meet" style="width:100%;height:auto;display:block;">
+        <rect x="10" y="10" width="40" height="40" fill="#f0f0f0" stroke="black" stroke-width="0.2"/>
+      </svg>
+    </div>
+  </div>
 <script>
   const knob = document.getElementById('slider-knob');
   const svg = document.querySelector('svg.layout');
@@ -305,5 +161,6 @@
 <script src="beat-data.js"></script>
 <script src="carousel.js"></script>
 <script src="view-toggle.js"></script>
+<script src="upload-toggle.js"></script>
 </body>
 </html>
