@@ -8,7 +8,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { width: 100vw; height: 100vh; overflow: hidden; background: #ffffff; }
     svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-    .main-content {
+    .list-container {
       position: fixed;
       border: 3px solid #000000;
       left: 9%;
@@ -18,6 +18,60 @@
       overflow-y: scroll;
       font-family: -apple-system, "Helvetica Neue", sans-serif;
       font-size: 11px;
+    }
+    .carousel-container {
+      position: fixed;
+      border: 3px solid #000000;
+      left: 9%;
+      top: 21.5%;
+      width: calc(90% - 7%);
+      height: calc(67% - 23.5%);
+      overflow: hidden;
+      font-family: -apple-system, "Helvetica Neue", sans-serif;
+      font-size: 11px;
+      perspective: 1100px;
+    }
+    .carousel-item {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 22%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      font-size: 1.3em;
+      transition: transform 0.45s ease, opacity 0.45s ease;
+    }
+    .carousel-item__artwork {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 6px, #e2e2e2 6px, #e2e2e2 12px);
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+    .carousel-item__artwork img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .carousel-item__title {
+      font-weight: 500;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+    .carousel-item__artist {
+      color: #999;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      margin-top: 1px;
     }
     .tracklist {
       width: 100%;
@@ -154,6 +208,22 @@
 
     <g class="header-panel">
       <rect x="40" y="12" width="40" height="10" fill="white" stroke="black" stroke-width="0.2"/>
+      <!-- header buttons: list view (three stripes) and carousel (box) -->
+      <g class="header-buttons">
+        <g class="btn list-view" style="cursor:pointer">
+          <rect x="64" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
+          <title>List view</title>
+          <rect x="65.2" y="14.3" width="3.6" height="0.5" fill="black"/>
+          <rect x="65.2" y="16.6" width="3.6" height="0.5" fill="black"/>
+          <rect x="65.2" y="18.9" width="3.6" height="0.5" fill="black"/>
+        </g>
+
+        <g class="btn carousel" style="cursor:pointer">
+          <rect x="72.5" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
+          <title>Carousel mode</title>
+          <rect x="74" y="15" width="2.9" height="4" fill="none" stroke="black" stroke-width="0.3"/>
+        </g>
+      </g>
     </g>
 
     <g class="side-panel">
@@ -185,7 +255,7 @@
     </g>
   </svg>
   
-  <div class="main-content">
+  <div class="list-container">
     <table class="tracklist">
       <thead>
         <tr>
@@ -214,6 +284,9 @@
       </tbody>
     </table>
   </div>
+
+  <div class="carousel-container">
+  </div>
 <script>
   const knob = document.getElementById('slider-knob');
   const svg = document.querySelector('svg.layout');
@@ -229,5 +302,8 @@
     knob.setAttribute('cx', Math.min(maxX, Math.max(minX, svgX)));
   });
 </script>
+<script src="beat-data.js"></script>
+<script src="carousel.js"></script>
+<script src="view-toggle.js"></script>
 </body>
 </html>
