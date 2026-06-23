@@ -168,5 +168,11 @@
 
   // Exposed for other scripts (e.g. wiring up the transport prev/next
   // buttons, or triggering playback of the active item's bank/file).
-  window.beatCarousel = { next, prev, goTo, get currentIndex() { return currentIndex; } };
+  window.beatCarousel = {
+    next,
+    prev,
+    goTo,
+    rebuild() { build(); update(); },
+    get currentIndex() { return currentIndex; }
+  };
 })();

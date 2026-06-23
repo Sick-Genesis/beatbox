@@ -1,0 +1,169 @@
+/* upload.css */
+
+/* Default hidden — upload-toggle.js adds .is-visible to show */
+.upload-container {
+  display: none;
+  overflow-y: auto;
+  align-items: flex-start;
+}
+.upload-container.is-visible {
+  display: flex;
+  align-items: flex-start; /* center breaks scroll when child overflows */
+  overflow-y: auto;        /* container scrolls, not the inner box */
+}
+
+.upload-container__box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid #000;
+  background: white;
+  overflow: visible;       /* let the container above handle scroll */
+  padding: 12px;
+}
+
+/* Two-column form that fills the square box */
+.upload-form {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Artwork drop zone ── */
+.upload-form__artwork-zone {
+  flex: 0 0 42%;
+  aspect-ratio: 1 / 1;
+  align-self: flex-start;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  background: #f8f8f8;
+  border: 1.5px dashed #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.upload-form__artwork-zone.drag-over {
+  border-color: #000;
+  background: #efefef;
+}
+
+.artwork-placeholder {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.artwork-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+/* ── Right-side fields ── */
+.upload-form__fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* ── Audio drop zone ── */
+.upload-form__audio-zone {
+  border: 1.5px dashed #bbb;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8f8f8;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.upload-form__audio-zone.drag-over {
+  border-color: #000;
+  background: #efefef;
+}
+
+.upload-form__audio-zone.has-file {
+  border-style: solid;
+  border-color: #000;
+}
+
+.audio-zone__label {
+  font-size: 10px;
+  color: #888;
+}
+
+.upload-form__audio-zone.has-file .audio-zone__label {
+  color: #333;
+}
+
+.audio-zone__filename {
+  font-size: 9px;
+  color: #555;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hidden native file input */
+.upload-form__audio-zone input[type="file"] {
+  display: none;
+}
+
+/* ── Text fields ── */
+.upload-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.upload-form__field label {
+  font-size: 9px;
+  color: #999;
+  letter-spacing: 0.03em;
+}
+
+.upload-form__field input[type="text"] {
+  border: none;
+  border-bottom: 1.5px solid #ccc;
+  padding: 3px 2px;
+  font-size: 11px;
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  outline: none;
+  background: transparent;
+  transition: border-color 0.15s;
+}
+
+.upload-form__field input[type="text"]:focus {
+  border-bottom-color: #000;
+}
+
+/* ── Submit ── */
+.upload-form__submit {
+  margin-top: auto;
+  border: 1.5px solid #000;
+  background: white;
+  padding: 5px 0;
+  font-size: 10px;
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.upload-form__submit:hover  { background: #f0f0f0; }
+.upload-form__submit:active { background: #e0e0e0; }
+
+.upload-form__submit.error {
+  border-color: hotpink;
+  color: hotpink;
+}

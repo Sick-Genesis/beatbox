@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>beatbox</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="upload.css">
 </head>
 <body>
   <svg class="layout" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -56,7 +57,6 @@
 
     <g class="header-panel">
       <rect x="40" y="12" width="40" height="10" fill="white" stroke="black" stroke-width="0.2"/>
-      <!-- header buttons: list view (three stripes) and carousel (box) -->
       <g class="header-buttons">
         <g class="btn list-view" style="cursor:pointer">
           <rect x="64" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
@@ -65,7 +65,6 @@
           <rect x="65.2" y="16.6" width="3.6" height="0.5" fill="black"/>
           <rect x="65.2" y="18.9" width="3.6" height="0.5" fill="black"/>
         </g>
-
         <g class="btn carousel" style="cursor:pointer">
           <rect x="72.5" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
           <title>Carousel mode</title>
@@ -102,7 +101,7 @@
       <rect x="39" y="86" width="20" height="3" fill="none" stroke="black" stroke-width="0.2"/>
     </g>
   </svg>
-  
+
   <div class="list-container">
     <table class="tracklist">
       <thead>
@@ -133,34 +132,73 @@
     </table>
   </div>
 
-  <div class="carousel-container">
-  </div>
+  <div class="carousel-container"></div>
 
+  <!-- Upload overlay — shown/hidden by upload-toggle.js via .is-visible -->
   <div class="upload-container">
     <div class="upload-container__box">
-      <svg viewBox="0 0 100 300" preserveAspectRatio="xMinYMin meet" style="width:100%;height:auto;display:block;">
-        <rect x="10" y="10" width="40" height="40" fill="#f0f0f0" stroke="black" stroke-width="0.2"/>
-      </svg>
+      <div class="upload-form">
+
+        <!-- Left: artwork drag/drop zone -->
+        <div class="upload-form__artwork-zone" id="artworkZone">
+          <svg class="artwork-placeholder" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" fill="#f5f5f5"/>
+            <line x1="50" y1="28" x2="50" y2="72" stroke="#ccc" stroke-width="3" stroke-linecap="round"/>
+            <line x1="28" y1="50" x2="72" y2="50" stroke="#ccc" stroke-width="3" stroke-linecap="round"/>
+            <text x="50" y="89" text-anchor="middle" font-size="8"
+              fill="#bbb" font-family="-apple-system, Helvetica Neue, sans-serif">
+              drop artwork
+            </text>
+          </svg>
+          <img class="artwork-preview" id="artworkPreview" alt="artwork preview"/>
+        </div>
+
+        <!-- Right: fields -->
+        <div class="upload-form__fields">
+
+          <div class="upload-form__audio-zone" id="audioZone">
+            <div class="audio-zone__label" id="audioLabel">drop audio or click</div>
+            <div class="audio-zone__filename" id="audioFilename"></div>
+            <input type="file" id="audioFile" accept=".wav,.mp3"/>
+          </div>
+
+          <div class="upload-form__field">
+            <label for="trackName">track name</label>
+            <input type="text" id="trackName" placeholder="untitled" autocomplete="off"/>
+          </div>
+
+          <div class="upload-form__field">
+            <label for="artistName">artist</label>
+            <input type="text" id="artistName" placeholder="unknown" autocomplete="off"/>
+          </div>
+
+          <button class="upload-form__submit" id="uploadSubmit">upload</button>
+
+        </div>
+      </div>
     </div>
   </div>
-<script>
-  const knob = document.getElementById('slider-knob');
-  const svg = document.querySelector('svg.layout');
-  const minX = 42, maxX = 56;
-  let dragging = false;
 
-  knob.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
-  window.addEventListener('mouseup', () => { dragging = false; });
-  window.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    const rect = svg.getBoundingClientRect();
-    const svgX = (e.clientX - rect.left) / rect.width * 100;
-    knob.setAttribute('cx', Math.min(maxX, Math.max(minX, svgX)));
-  });
-</script>
-<script src="beat-data.js"></script>
-<script src="carousel.js"></script>
-<script src="view-toggle.js"></script>
-<script src="upload-toggle.js"></script>
+  <script>
+    const knob = document.getElementById('slider-knob');
+    const svg  = document.querySelector('svg.layout');
+    const minX = 42, maxX = 56;
+    let dragging = false;
+
+    knob.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
+    window.addEventListener('mouseup',   () => { dragging = false; });
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const rect = svg.getBoundingClientRect();
+      const svgX = (e.clientX - rect.left) / rect.width * 100;
+      knob.setAttribute('cx', Math.min(maxX, Math.max(minX, svgX)));
+    });
+  </script>
+  <script src="beat-data.js"></script>
+  <script src="carousel.js"></script>
+  <script src="view-toggle.js"></script>
+  <script src="upload-toggle.js"></script>
+  <script src="upload.js"></script>
+  <script src="transport.js"></script>
 </body>
 </html>
