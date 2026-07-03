@@ -98,11 +98,15 @@
     });
   }
 
-  // Plays once per item change, restarting if triggered again quickly.
+  // Plays once per item change. Rapid triggers (fast clicking/scrolling)
+  // can fire before the previous play() has settled, so reusing one
+  // Audio element and resetting currentTime would abort the in-flight
+  // play and silently drop the sound. Cloning a fresh node per call lets
+  // overlapping triggers play independently instead of racing.
   const scrollSound = new Audio('asset/sound/scroll.wav');
   function playScrollSound() {
-    scrollSound.currentTime = 0;
-    scrollSound.play().catch(() => {});
+    const sound = scrollSound.cloneNode();
+    sound.play().catch(() => {});
   }
 
   function goTo(index) {

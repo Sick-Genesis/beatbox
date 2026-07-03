@@ -42,12 +42,14 @@
         stroke-width="0.2"
       />
       <!-- bookmarks star-->
-      <polygon class="side-nav__star" points="2.5,26 3,27.5 4.5,27.5 3.3,28.4 3.8,30 2.5,29.1 1.2,30 1.7,28.4 0.5,27.5 2,27.5" fill="hotpink"/>
+      <polygon class="keep-aspect side-nav__star" data-cx="2.5" data-cy="27.8" points="2.5,26 3,27.5 4.5,27.5 3.3,28.4 3.8,30 2.5,29.1 1.2,30 1.7,28.4 0.5,27.5 2,27.5" fill="hotpink"/>
       <!-- envelope -->
-      <rect x="0.5" y="33" width="4" height="2.8" fill="none" stroke="black" stroke-width="0.2"/>
-      <polyline points="0.5,33 2.5,34.6 4.5,33" fill="none" stroke="black" stroke-width="0.2"/>
+      <g class="keep-aspect" data-cx="2.5" data-cy="34.4">
+        <rect x="0.5" y="33" width="4" height="2.8" fill="none" stroke="black" stroke-width="0.2"/>
+        <polyline points="0.5,33 2.5,34.6 4.5,33" fill="none" stroke="black" stroke-width="0.2"/>
+      </g>
       <!-- upload -->
-      <g class="btn upload" style="cursor:pointer">
+      <g class="btn upload keep-aspect" data-cx="2.5" data-cy="41" style="cursor:pointer">
         <title>Upload</title>
         <rect x="0.5" y="38.5" width="4" height="2.8" fill="white" stroke="black" stroke-width="0.2"/>
         <line x1="2.5" y1="41.3" x2="2.5" y2="43.5" stroke="black" stroke-width="0.2"/>
@@ -58,17 +60,34 @@
     <g class="header-panel">
       <rect x="40" y="12" width="40" height="10" fill="white" stroke="black" stroke-width="0.2"/>
       <g class="header-buttons">
-        <g class="btn list-view" style="cursor:pointer">
+        <g class="btn list-view keep-aspect" data-cx="67" data-cy="17" style="cursor:pointer">
           <rect x="64" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
           <title>List view</title>
           <rect x="65.2" y="14.3" width="3.6" height="0.5" fill="black"/>
           <rect x="65.2" y="16.6" width="3.6" height="0.5" fill="black"/>
           <rect x="65.2" y="18.9" width="3.6" height="0.5" fill="black"/>
         </g>
-        <g class="btn carousel" style="cursor:pointer">
+        <g class="btn carousel keep-aspect" data-cx="75.5" data-cy="17" style="cursor:pointer">
           <rect x="72.5" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
           <title>Carousel mode</title>
           <rect x="74" y="15" width="2.9" height="4" fill="none" stroke="black" stroke-width="0.3"/>
+        </g>
+        <!-- dark mode toggle: sun/moon icon -->
+        <g class="btn theme-toggle keep-aspect" data-cx="45" data-cy="17" style="cursor:pointer">
+          <title>Toggle dark mode</title>
+          <rect x="42" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
+          <!-- sun rays (visible in light mode) -->
+          <g class="theme-icon--sun">
+            <circle cx="45" cy="17" r="1.3" fill="none" stroke="black" stroke-width="0.3"/>
+            <line x1="45" y1="14.6" x2="45" y2="15.3" stroke="black" stroke-width="0.25"/>
+            <line x1="45" y1="18.7" x2="45" y2="19.4" stroke="black" stroke-width="0.25"/>
+            <line x1="42.6" y1="17" x2="43.3" y2="17" stroke="black" stroke-width="0.25"/>
+            <line x1="46.7" y1="17" x2="47.4" y2="17" stroke="black" stroke-width="0.25"/>
+          </g>
+          <!-- crescent moon (visible in dark mode) -->
+          <g class="theme-icon--moon" style="display:none">
+            <path d="M45.45,15.05 A2,2 0 1,0 45.45,18.95 A2,2 0 0,1 45.45,15.05 Z" fill="black" stroke="none"/>
+          </g>
         </g>
       </g>
     </g>
@@ -85,18 +104,24 @@
         stroke-width="0.3"
       />
       <line x1="42" y1="73.5" x2="56" y2="73.5" stroke="black" stroke-width="0.4"/>
-      <circle id="slider-knob" cx="49" cy="73.5" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:ew-resize"/>
+      <circle id="slider-knob" class="keep-aspect" data-cx="49" data-cy="73.5" cx="49" cy="73.5" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:ew-resize"/>
       <!-- prev -->
-      <circle class="prev" cx="42" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
-      <line x1="40.2" y1="79" x2="40.2" y2="82" stroke="black" stroke-width="0.4"/>
-      <polygon points="43.6,79 40.6,80.5 43.6,82" fill="black"/>
+      <g class="keep-aspect" data-cx="42" data-cy="80.5">
+        <circle class="prev" cx="42" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
+        <line x1="40.2" y1="79" x2="40.2" y2="82" stroke="black" stroke-width="0.4"/>
+        <polygon points="43.6,79 40.6,80.5 43.6,82" fill="black"/>
+      </g>
       <!-- next -->
-      <circle class="next" cx="56" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
-      <line x1="57.8" y1="79" x2="57.8" y2="82" stroke="black" stroke-width="0.4"/>
-      <polygon points="54.4,79 57.4,80.5 54.4,82" fill="black"/>
+      <g class="keep-aspect" data-cx="56" data-cy="80.5">
+        <circle class="next" cx="56" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
+        <line x1="57.8" y1="79" x2="57.8" y2="82" stroke="black" stroke-width="0.4"/>
+        <polygon points="54.4,79 57.4,80.5 54.4,82" fill="black"/>
+      </g>
       <!-- play -->
-      <circle class="play-pause" cx="49" cy="80.5" r="4.5" fill="white" stroke="black" stroke-width="0.2"/>
-      <polygon points="47.5,78.5 52,80.5 47.5,82.5" fill="black"/>
+      <g class="keep-aspect" data-cx="49" data-cy="80.5">
+        <circle class="play-pause" cx="49" cy="80.5" r="4.5" fill="white" stroke="black" stroke-width="0.2"/>
+        <polygon points="47.5,78.5 52,80.5 47.5,82.5" fill="black"/>
+      </g>
       <!-- time -->
       <rect x="39" y="86" width="20" height="3" fill="none" stroke="black" stroke-width="0.2"/>
     </g>
@@ -194,6 +219,8 @@
       knob.setAttribute('cx', Math.min(maxX, Math.max(minX, svgX)));
     });
   </script>
+  <script src="aspect-fix.js"></script>
+  <script src="theme-toggle.js"></script>
   <script src="beat-data.js"></script>
   <script src="carousel.js"></script>
   <script src="view-toggle.js"></script>

@@ -1,16 +1,103 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  --bg: #ffffff;
+  --surface: #f3f3f3;
+  --border: #cccccc;
+  --text: #111111;
+  --muted: #888;
+  --accent: #000000;
+  --top-h: 5vh;
+  --side-w: 56px;
+  --skew: 5vh;
+}
+
+[data-theme="dark"] {
   --bg: #0e0e0e;
   --surface: #1a1a1a;
   --border: #2a2a2a;
   --text: #e0e0e0;
   --muted: #666;
   --accent: #c8ff00;
-  --top-h: 5vh;
-  --side-w: 56px;
-  --skew: 5vh; /* horizontal offset matching 45° on a 5vh bar */
 }
+
+/* SVG element overrides for dark mode.
+   Only recolor elements that already declared stroke="black"/fill="black"
+   in light mode — blanket tag selectors were adding strokes/fills to
+   elements that never had them (e.g. the list-view bars, the star and
+   transport triangles), changing their apparent weight/shape instead of
+   just their color. */
+[data-theme="dark"] svg.layout [stroke="black"] {
+  stroke: #c8ff00;
+}
+
+[data-theme="dark"] svg.layout .top-bar__fill,
+[data-theme="dark"] svg.layout .side-bar__fill,
+[data-theme="dark"] svg.layout .side-panel__fill,
+[data-theme="dark"] svg.layout .bottom-panel__fill,
+[data-theme="dark"] svg.layout .header-panel > rect {
+  fill: #1a1a1a;
+  stroke: #c8ff00;
+}
+
+[data-theme="dark"] svg.layout .top-bar__bg-fill,
+[data-theme="dark"] svg.layout .side-bar__bg-fill {
+  fill: #2a2a2a;
+  stroke: none;
+}
+
+[data-theme="dark"] svg.layout .btn > rect[fill="#f3f3f3"] {
+  fill: #2a2a2a;
+  stroke: #c8ff00;
+}
+
+[data-theme="dark"] svg.layout text {
+  fill: #e0e0e0;
+}
+
+[data-theme="dark"] svg.layout polygon[fill="black"],
+[data-theme="dark"] svg.layout rect[fill="black"],
+[data-theme="dark"] svg.layout path[fill="black"] {
+  fill: #c8ff00;
+}
+
+[data-theme="dark"] svg.layout #slider-knob {
+  fill: #2a2a2a;
+  stroke: #c8ff00;
+}
+
+[data-theme="dark"] .list-container,
+[data-theme="dark"] .carousel-container,
+[data-theme="dark"] .upload-container {
+  border-color: #c8ff00;
+  background: #0e0e0e;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .tracklist thead th {
+  background: #1a1a1a;
+  border-bottom-color: #2a2a2a;
+  color: #888;
+}
+
+[data-theme="dark"] .tracklist tbody tr:nth-child(odd)  { background: #111; }
+[data-theme="dark"] .tracklist tbody tr:nth-child(even) { background: #0e0e0e; }
+[data-theme="dark"] .tracklist tbody tr:hover { background: #1a1a1a; }
+
+[data-theme="dark"] .carousel-item__title { color: #e0e0e0; }
+[data-theme="dark"] .carousel-item__artwork {
+  background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 6px, #222 6px, #222 12px);
+}
+
+[data-theme="dark"] .upload-container__box { background: #0e0e0e; border-color: #c8ff00; }
+[data-theme="dark"] .upload-form__artwork-zone { background: #111; border-color: #333; }
+[data-theme="dark"] .upload-form__audio-zone  { background: #111; border-color: #333; }
+[data-theme="dark"] .upload-form__field input[type="text"] { color: #e0e0e0; border-bottom-color: #444; }
+[data-theme="dark"] .upload-form__field input[type="text"]:focus { border-bottom-color: #c8ff00; }
+[data-theme="dark"] .upload-form__submit { background: #0e0e0e; color: #e0e0e0; border-color: #c8ff00; }
+[data-theme="dark"] .upload-form__submit:hover  { background: #1a1a1a; }
+[data-theme="dark"] .transport__btn { background: radial-gradient(circle at 40% 35%, #2a2a2a, #111); color: #c8ff00; box-shadow: 0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05); }
+[data-theme="dark"] .transport__slider { background: linear-gradient(to right, #333, #1a1a1a); }
 
 body {
   background: var(--bg);
@@ -312,7 +399,7 @@ main {
 
 /* App-specific styles extracted from index.html */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { width: 100vw; height: 100vh; overflow: hidden; background: #ffffff; }
+body { width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); transition: background 0.2s; }
 svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
 .list-container {
   position: fixed;
