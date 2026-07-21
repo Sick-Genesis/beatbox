@@ -91,13 +91,18 @@ create trigger beats_require_preview
   before insert or update on public.beats
   for each row execute function public.enforce_preview_before_publish();
 
--- Existing rows predate previews. Their audio is already public, so they
--- keep working: treat the current public file as its own preview rather
--- than un-publishing beats that are already live.
+-- Existing rows predate previews and have no tagged copy. They cannot
+-- simply reuse their master: it stays in beat-audio, which this migration
+-- makes private, while previews are served from beat-previews.
+--
+-- So they go back to draft and through the normal pipeline. Un-publishing
+-- briefly is the right trade against leaving a clean master streaming
+-- publicly, or pointing the player at a bucket where the file is not.
 update public.beats
-   set preview_path  = coalesce(preview_path, audio_path),
-       preview_state = 'ready',
-       preview_mode  = 'supplied'
+   set preview_state = 'pending',
+       preview_path  = null,
+       preview_mode  = 'platform',
+       status        = 'draft'
  where preview_path is null;
 
 -- ── 3. Buckets ───────────────────────────────────────────────────────────────
