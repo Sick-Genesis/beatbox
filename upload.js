@@ -15,10 +15,43 @@
   const audioFilename  = document.getElementById('audioFilename');
   const trackNameInput = document.getElementById('trackName');
   const artistInput    = document.getElementById('artistName');
+  const bpmInput       = document.getElementById('trackBpm');
+  const keyInput       = document.getElementById('trackKey');
+  const tagsInput      = document.getElementById('trackTags');
+  const rightsCheck    = document.getElementById('rightsWarrant');
+  const rightsText     = document.getElementById('rightsWarrantText');
+  const samplesCheck   = document.getElementById('containsSamples');
+  const sampleNotes    = document.getElementById('sampleNotes');
+  const sampleWrap     = document.getElementById('sampleNotesWrap');
+  const statusEl       = document.getElementById('uploadStatus');
   const submitBtn      = document.getElementById('uploadSubmit');
 
   let pendingAudio   = null;
   let pendingArtwork = null;
+
+  // Show the full warranty wording the uploader is agreeing to, taken from
+  // the same constant that gets stored on the beat. Keeping one source
+  // means the checkbox can never say something different from the record.
+  //
+  // main.js is a deferred module, so window.beatboxApi does not exist yet
+  // when this classic script runs. Poll briefly rather than reading once.
+  (function fillWarranty(attempt = 0) {
+    const text = window.beatboxApi?.RIGHTS_WARRANTY_TEXT;
+    if (text && rightsText) {
+      rightsText.textContent = text;
+      return;
+    }
+    if (attempt < 40) setTimeout(() => fillWarranty(attempt + 1), 50);
+  })();
+
+  // Sample details only matter if samples were declared.
+  function syncSampleNotes() {
+    if (sampleWrap) {
+      sampleWrap.style.display = samplesCheck?.checked ? 'flex' : 'none';
+    }
+  }
+  samplesCheck?.addEventListener('change', syncSampleNotes);
+  syncSampleNotes();
 
   // ── Artwork zone ──────────────────────────────────────────────────────────
 
@@ -74,12 +107,70 @@
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
-  submitBtn.addEventListener('click', () => {
+  submitBtn.addEventListener('click', async () => {
     if (!pendingAudio) {
       flashError(audioZone);
+      setStatus('Choose an audio file first.', true);
       return;
     }
 
+    const api = window.beatboxApi;
+
+    // No backend configured — keep the original local-only behaviour so
+    // the prototype still demos without Supabase.
+    if (!api?.isConfigured) {
+      addLocally();
+      return;
+    }
+
+    if (!rightsCheck?.checked) {
+      setStatus('Confirm you hold the rights before uploading.', true);
+      return;
+    }
+
+    const session = await api.getSession();
+    if (!session) {
+      setStatus('Sign in to upload a beat.', true);
+      return;
+    }
+    if (!session.isProducer) {
+      setStatus('Only producer accounts can upload beats.', true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    setStatus('Uploading…');
+
+    try {
+      await api.createBeat({
+        audioFile:   pendingAudio,
+        artworkFile: pendingArtwork,
+        title:       trackNameInput.value.trim(),
+        artist:      artistInput.value.trim(),
+        bpm:         bpmInput?.value.trim() || null,
+        musicalKey:  keyInput?.value.trim() || '',
+        tags:        parseTags(tagsInput?.value),
+        rightsWarranted: true,
+        containsSamples: !!samplesCheck?.checked,
+        sampleNotes:     sampleNotes?.value || '',
+      });
+
+      // Re-fetch so the new beat arrives with its server-side id and URLs
+      // rather than being faked into the array locally.
+      await api.reloadBeats();
+
+      setStatus('');
+      resetForm();
+      window.uploadToggle?.close?.();
+    } catch (e) {
+      setStatus(e.message, true);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  /** Original behaviour: push a blob-backed entry straight into beatBank. */
+  function addLocally() {
     const entry = {
       title:     trackNameInput.value.trim() || 'untitled',
       artist:    artistInput.value.trim()    || 'unknown',
@@ -89,28 +180,40 @@
       audioBlob: pendingAudio,
     };
 
-    if (typeof beatBank !== 'undefined') {
-      beatBank.push(entry);
-    }
-
-    // Tell the carousel to re-render with the new entry
-    if (window.beatCarousel && typeof window.beatCarousel.rebuild === 'function') {
-      window.beatCarousel.rebuild();
-    }
+    if (typeof beatBank !== 'undefined') beatBank.push(entry);
+    window.beatCarousel?.rebuild?.();
 
     resetForm();
+    window.uploadToggle?.close?.();
+  }
 
-    // Close the overlay if upload-toggle exposes a close method
-    if (window.uploadToggle && typeof window.uploadToggle.close === 'function') {
-      window.uploadToggle.close();
-    }
-  });
+  /** "trap, dark, 808" → ["trap","dark","808"], deduped and lowercased. */
+  function parseTags(raw) {
+    if (!raw) return [];
+    return [...new Set(
+      raw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
+    )];
+  }
+
+  function setStatus(message, isError = false) {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.toggle('is-error', isError);
+  }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   function resetForm() {
     trackNameInput.value = '';
     artistInput.value    = '';
+    if (bpmInput)     bpmInput.value = '';
+    if (keyInput)     keyInput.value = '';
+    if (tagsInput)    tagsInput.value = '';
+    if (sampleNotes)  sampleNotes.value = '';
+    if (rightsCheck)  rightsCheck.checked = false;
+    if (samplesCheck) samplesCheck.checked = false;
+    syncSampleNotes();
+    setStatus('');
     audioFilename.textContent = '';
     audioLabel.textContent    = 'drop audio or click';
     audioZone.classList.remove('has-file');

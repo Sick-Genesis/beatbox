@@ -1,1 +1,7 @@
 node_modules/
+dist/
+
+# Local env — contains your Supabase keys. Never commit.
+.env
+.env.local
+.env.*.local

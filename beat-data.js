@@ -12,7 +12,11 @@
 //                      file) that this carousel item should call when
 //                      selected/played
 
-const beatBank = [
+// Declared on window (not `const`) so the Supabase data layer in src/ can
+// reach it. src/main.js replaces these placeholder rows in place once real
+// beats load — see the note in src/beats-repo.js about why it must mutate
+// this array rather than reassign it.
+window.beatBank = [
   { title: "Track Title", artist: "Artist", artwork: null, bank: "bank_01", file: "track_001.wav" },
   { title: "Track Title", artist: "Artist", artwork: null, bank: "bank_01", file: "track_002.wav" },
   { title: "Track Title", artist: "Artist", artwork: null, bank: "bank_01", file: "track_003.wav" },

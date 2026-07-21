@@ -6,6 +6,7 @@
   <title>beatbox</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="upload.css">
+  <link rel="stylesheet" href="auth.css">
 </head>
 <body>
   <svg class="layout" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -197,6 +198,42 @@
             <input type="text" id="artistName" placeholder="unknown" autocomplete="off"/>
           </div>
 
+          <!-- BPM and key are the two fields buyers filter on first. -->
+          <div class="upload-form__row">
+            <div class="upload-form__field">
+              <label for="trackBpm">bpm</label>
+              <input type="text" id="trackBpm" placeholder="140" inputmode="numeric" autocomplete="off"/>
+            </div>
+            <div class="upload-form__field">
+              <label for="trackKey">key</label>
+              <input type="text" id="trackKey" placeholder="F min" autocomplete="off"/>
+            </div>
+          </div>
+
+          <div class="upload-form__field">
+            <label for="trackTags">tags</label>
+            <input type="text" id="trackTags" placeholder="trap, dark, 808" autocomplete="off"/>
+          </div>
+
+          <!-- Rights declaration. createBeat() refuses without this, and a
+               beat with no declaration cannot be traded. -->
+          <label class="upload-form__check" for="rightsWarrant">
+            <input type="checkbox" id="rightsWarrant"/>
+            <span id="rightsWarrantText">I hold the rights to this beat</span>
+          </label>
+
+          <label class="upload-form__check" for="containsSamples">
+            <input type="checkbox" id="containsSamples"/>
+            <span>it contains third-party samples</span>
+          </label>
+
+          <div class="upload-form__field upload-form__samples" id="sampleNotesWrap">
+            <label for="sampleNotes">sample details</label>
+            <input type="text" id="sampleNotes" placeholder="what, and cleared how" autocomplete="off"/>
+          </div>
+
+          <p class="upload-form__status" id="uploadStatus"></p>
+
           <button class="upload-form__submit" id="uploadSubmit">upload</button>
 
         </div>
@@ -227,5 +264,8 @@
   <script src="upload-toggle.js"></script>
   <script src="upload.js"></script>
   <script src="transport.js"></script>
+  <!-- Data layer. Deferred by default as a module, so it runs after the
+       classic scripts above have defined beatBank and beatCarousel. -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,227 @@
+/* auth.css
+   Auth bar, modals and toasts.
+
+   Uses the same custom properties as style.css (--bg, --surface, --border,
+   --text, --muted, --accent) so dark mode is inherited rather than
+   redefined. In dark mode --accent is the acid green #c8ff00. */
+
+/* ── Auth bar ─────────────────────────────────────────────────────────── */
+
+.auth-bar {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  z-index: 900;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.auth-bar input {
+  width: 118px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.auth-bar input:focus-visible,
+.auth-modal input:focus-visible,
+.auth-modal select:focus-visible,
+.auth-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.auth-bar__who {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.auth-bar__role {
+  padding: 2px 7px;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+
+.auth-btn {
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.auth-btn:hover { border-color: var(--text); }
+
+.auth-btn--primary {
+  border-color: var(--text);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .auth-btn--primary {
+  color: #0e0e0e;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.auth-btn--icon {
+  width: 26px;
+  padding: 5px 0;
+  text-align: center;
+}
+
+.auth-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Modal ────────────────────────────────────────────────────────────── */
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .auth-overlay { background: rgba(0, 0, 0, 0.75); }
+
+.auth-modal {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 24px;
+
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--text);
+}
+
+[data-theme="dark"] .auth-modal { border-color: var(--accent); }
+
+.auth-modal__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-field > span {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.auth-field input,
+.auth-field select {
+  width: 100%;
+  padding: 7px 9px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.auth-note {
+  margin: -4px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.auth-note:empty { display: none; }
+
+.auth-error {
+  margin: 0;
+  min-height: 15px;
+  font-size: 11px;
+  color: #d33;
+}
+
+[data-theme="dark"] .auth-error { color: #ff6b6b; }
+
+.auth-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* ── Toast ────────────────────────────────────────────────────────────── */
+
+.auth-toast {
+  position: fixed;
+  top: 44px;
+  right: 12px;
+  z-index: 1100;
+  max-width: 300px;
+  padding: 8px 13px;
+
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--text);
+  border-radius: 2px;
+
+  animation: auth-toast-in 0.16s ease-out;
+}
+
+[data-theme="dark"] .auth-toast { border-color: var(--accent); }
+
+.auth-toast--error { border-color: #d33; }
+[data-theme="dark"] .auth-toast--error { border-color: #ff6b6b; }
+
+@keyframes auth-toast-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-toast { animation: none; }
+}
+
+/* The SVG layout is fixed-coordinate and the auth bar would collide with
+   the top bar on narrow screens. Stack it instead of overlapping. */
+@media (max-width: 620px) {
+  .auth-bar {
+    top: auto;
+    bottom: 8px;
+    right: 8px;
+    left: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .auth-bar input { width: calc(50% - 3px); }
+}

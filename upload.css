@@ -14,7 +14,7 @@
 
 .upload-container__box {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   border: 2px solid #000;
   background: white;
   overflow: visible;       /* let the container above handle scroll */
@@ -32,7 +32,7 @@
 
 /* ── Artwork drop zone ── */
 .upload-form__artwork-zone {
-  flex: 0 0 42%;
+  flex: 0 0 32%;   /* the fields column needs the room more than artwork does */
   aspect-ratio: 1 / 1;
   align-self: flex-start;
   position: relative;
@@ -66,13 +66,19 @@
   display: none;
 }
 
-/* ── Right-side fields ── */
+/* ── Right-side fields ──
+   Scrolls within the box rather than pushing the submit button out of
+   reach: the fields area takes the overflow and the button stays pinned
+   below it. */
 .upload-form__fields {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
+  min-height: 0;      /* lets the scroll area actually shrink in a flex row */
+  overflow-y: auto;
+  padding-right: 4px; /* room for the scrollbar so it doesn't cover inputs */
 }
 
 /* ── Audio drop zone ── */
@@ -147,9 +153,59 @@
   border-bottom-color: #000;
 }
 
+/* BPM and key sit side by side — both are short values. */
+.upload-form__row {
+  display: flex;
+  gap: 10px;
+}
+
+.upload-form__row .upload-form__field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Checkboxes (rights warranty, samples) ── */
+.upload-form__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 9px;
+  line-height: 1.35;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
+}
+
+.upload-form__check input[type="checkbox"] {
+  flex: none;
+  margin-top: 1px;
+  cursor: pointer;
+}
+
+.upload-form__check:hover { color: #333; }
+
+/* Hidden until samples are declared; JS toggles to flex. */
+.upload-form__samples { display: none; }
+
+/* ── Status line ── */
+.upload-form__status {
+  margin: 0;
+  min-height: 12px;
+  font-size: 9px;
+  line-height: 1.35;
+  color: #888;
+}
+
+.upload-form__status.is-error { color: hotpink; }
+
 /* ── Submit ── */
 .upload-form__submit {
-  margin-top: auto;
+  /* Sticks to the bottom of the scrolling fields column so it is always
+     reachable, however many fields are above it. */
+  position: sticky;
+  bottom: 0;
+  margin-top: 4px;
+  flex: none;
   border: 1.5px solid #000;
   background: white;
   padding: 5px 0;

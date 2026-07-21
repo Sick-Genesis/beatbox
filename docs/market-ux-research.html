@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>beatbox — market &amp; UX research</title>
+<style>
+  /* Minimal reset — the hosted artifact gets this from its wrapper;
+     this standalone copy needs it inline. */
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+</style>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f5f2;
+    --surface-2: #ececea;
+    --border: #d9d9d2;
+    --text: #141414;
+    --muted: #6b6f63;
+    --accent: #5a7a00;      /* accent legible on light ground */
+    --accent-ink: #c8ff00;  /* the brand acid-green, used on dark chips */
+    --warn: #a86400;
+    --good: #3a7d2c;
+    --rule: #141414;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface-2: #1d1d1d;
+      --border: #2a2a2a;
+      --text: #e4e4e0;
+      --muted: #7a7f70;
+      --accent: #c8ff00;
+      --accent-ink: #c8ff00;
+      --warn: #ffb000;
+      --good: #8bd66a;
+      --rule: #c8ff00;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff; --surface: #f5f5f2; --surface-2: #ececea; --border: #d9d9d2;
+    --text: #141414; --muted: #6b6f63; --accent: #5a7a00; --accent-ink: #c8ff00;
+    --warn: #a86400; --good: #3a7d2c; --rule: #141414;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e0e0e; --surface: #161616; --surface-2: #1d1d1d; --border: #2a2a2a;
+    --text: #e4e4e0; --muted: #7a7f70; --accent: #c8ff00; --accent-ink: #c8ff00;
+    --warn: #ffb000; --good: #8bd66a; --rule: #c8ff00;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+  .mono {
+    font-family: "SF Mono", "SFMono-Regular", ui-monospace, "Cascadia Mono",
+      "Consolas", "Liberation Mono", Menlo, monospace;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  header.mast {
+    border-bottom: 1.5px solid var(--rule);
+    padding: 64px 0 26px;
+  }
+  .mast .eyebrow {
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 20px;
+  }
+  .mast h1 {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-weight: 500;
+    font-size: clamp(34px, 7vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .mast h1 .lo { color: var(--accent); }
+  .mast .dek {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 54ch;
+    margin: 0;
+  }
+  .mast .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 26px;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mast .meta b { color: var(--text); font-weight: 500; }
+
+  /* ── Sections ─────────────────────────────────────────── */
+  section { padding: 46px 0; border-bottom: 1px solid var(--border); }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .sec-num {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    flex: none;
+  }
+  h2 {
+    font-size: clamp(22px, 3.6vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 18px;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    margin: 30px 0 8px;
+    font-weight: 600;
+  }
+  p { margin: 0 0 15px; }
+  p.lead { font-size: 17.5px; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+  strong { font-weight: 600; }
+  em.term { font-style: normal; color: var(--accent); }
+
+  ul.clean { list-style: none; padding: 0; margin: 0 0 15px; }
+  ul.clean li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 9px;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 2px; top: 0.72em;
+    width: 7px; height: 1.5px;
+    background: var(--accent);
+  }
+
+  /* ── Verdict callout ──────────────────────────────────── */
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 22px 24px;
+    margin: 6px 0 4px;
+  }
+  .verdict .label {
+    font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 8px;
+  }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  /* ── Comparison table ─────────────────────────────────── */
+  .table-scroll { overflow-x: auto; margin: 4px 0 18px; -webkit-overflow-scrolling: touch; }
+  table.cmp {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 640px;
+  }
+  table.cmp th, table.cmp td {
+    text-align: left;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.cmp thead th {
+    font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+    border-bottom: 1.5px solid var(--rule);
+    position: sticky; top: 0; background: var(--bg);
+  }
+  table.cmp tbody th {
+    font-weight: 600; color: var(--text); white-space: nowrap;
+  }
+  table.cmp td.pos { color: var(--good); }
+  table.cmp td.neg { color: var(--warn); }
+  table.cmp tr:last-child td, table.cmp tr:last-child th { border-bottom: none; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ── Tier cards ───────────────────────────────────────── */
+  .tiers { display: grid; gap: 16px; margin: 8px 0 4px; }
+  .tier {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 20px 22px;
+  }
+  .tier.now { border-top: 3px solid var(--accent); }
+  .tier.next { border-top: 3px solid var(--muted); }
+  .tier.later { border-top: 3px solid var(--border); }
+  .tier .thead {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; margin-bottom: 4px;
+  }
+  .tier h3 { margin: 0; font-size: 16px; }
+  .tier .when {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tier .goal { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+  .tier ul.clean li { font-size: 14px; margin-bottom: 7px; }
+  .tier ul.clean li::before { background: var(--accent); }
+  .tier.later ul.clean li::before { background: var(--muted); }
+
+  /* ── Gap chips ────────────────────────────────────────── */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 20px; }
+  .chip {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 11.5px;
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--surface);
+    color: var(--muted);
+  }
+  .chip b { color: var(--text); font-weight: 500; }
+
+  /* ── Fork: two strategic paths ────────────────────────── */
+  .fork { display: grid; gap: 16px; margin: 10px 0 20px; }
+  @media (min-width: 680px) { .fork { grid-template-columns: 1fr 1fr; } }
+  .fork .path {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--muted);
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+  .fork .path:first-child { border-top-color: var(--accent); }
+  .fork .label {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text); margin: 0 0 8px;
+  }
+  .fork .path p { font-size: 14px; }
+  .fork ul.clean { margin-bottom: 0; }
+  .fork ul.clean li { font-size: 13.5px; margin-bottom: 7px; color: var(--muted); }
+  .fork ul.clean li b { color: var(--text); font-weight: 600; }
+
+  /* ── Risk callout ─────────────────────────────────────── */
+  .risk {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warn);
+    background: var(--surface);
+    padding: 18px 20px;
+    margin: 18px 0;
+  }
+  .risk .label {
+    font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--warn); margin: 0 0 8px;
+  }
+  .risk p:last-child { margin-bottom: 0; }
+
+  /* ── Payment note ─────────────────────────────────────── */
+  .note {
+    font-size: 13px; color: var(--muted);
+    border-left: 2px solid var(--border);
+    padding: 2px 0 2px 16px; margin: 16px 0;
+  }
+
+  footer {
+    padding: 34px 0 70px; font-size: 12px; color: var(--muted);
+  }
+  footer .mono { font-size: 11px; }
+
+  @media (max-width: 560px) {
+    .mast { padding-top: 44px; }
+    p.lead { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <p class="eyebrow">Market &amp; UX research · beat marketplace</p>
+    <h1 class="mono">beat<span class="lo">box</span></h1>
+    <p class="dek">Where the prototype stands, what the market rewards, and the smallest set of things worth building to become a real marketplace.</p>
+    <div class="meta">
+      <span>Prepared for <b>Sila</b></span>
+      <span>21 Jul 2026</span>
+      <span>Status <b>front-end prototype</b></span>
+    </div>
+  </header>
+
+  <!-- 01 — WHERE YOU ARE -->
+  <section>
+    <div class="sec-head"><span class="sec-num mono">01</span><h2>Where the prototype stands today</h2></div>
+    <p class="lead">beatbox is a striking, opinionated <strong>player shell</strong> — and almost none of a marketplace yet. That's the honest starting line, and it's a good one: the hardest thing to fake (a point of view) is already here.</p>
+    <p>What's real: a skewed cassette-deck SVG layout with hand-drawn hairline controls, a working HTML5 audio transport (play/pause, prev/next, volume, elapsed time), a list ⇄ carousel toggle, a light/dark theme with a genuine acid-green identity, and a local upload form that pushes a track into an in-memory array.</p>
+    <p>What isn't there — and what a marketplace is actually made of:</p>
+    <div class="chips">
+      <span class="chip"><b>No</b> backend / persistence</span>
+      <span class="chip"><b>No</b> accounts or auth</span>
+      <span class="chip"><b>No</b> checkout / payment</span>
+      <span class="chip"><b>No</b> licensing model</span>
+      <span class="chip"><b>No</b> waveform preview</span>
+      <span class="chip"><b>No</b> search / tags / filter</span>
+      <span class="chip"><b>No</b> messaging</span>
+      <span class="chip"><b>No</b> per-producer store</span>
+    </div>
+    <p class="note">Uploads currently live only in <span class="mono">beatBank</span> in the browser and vanish on refresh (<span class="mono">URL.createObjectURL</span> blobs). Every item below is really the question: <em class="term">what has to exist server-side before any of this counts.</em></p>
+  </section>
+
+  <!-- 02 — THE MARKET -->
+  <section>
+    <div class="sec-head"><span class="sec-num mono">02</span><h2>The market you'd be entering</h2></div>
+    <p>Selling beats online is a mature, consolidated space. The winner isn't the prettiest player — it's whoever combines a <strong>built-in buyer audience</strong> with <strong>frictionless licensing + checkout</strong>. Two incumbents dominate, with a tier of leaner challengers underneath competing on <em class="term">take rate</em> and <em class="term">control</em>.</p>
+
+    <div class="table-scroll">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Model</th>
+            <th>Commission</th>
+            <th>Its edge</th>
+            <th>Its weakness</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>BeatStars</th>
+            <td>Marketplace + storefront</td>
+            <td class="neg num">~12% fee</td>
+            <td class="pos">Largest built-in audience; licensing &amp; automation baked in</td>
+            <td>You pay for that reach; less brand control</td>
+          </tr>
+          <tr>
+            <th>Airbit</th>
+            <td>Storefront-first</td>
+            <td class="pos num">0% + PSP fees</td>
+            <td class="pos">Higher margins; strong analytics; SEO for your own store</td>
+            <td>Smaller native audience; 50-track cap on entry tier</td>
+          </tr>
+          <tr>
+            <th>Traktrain</th>
+            <td>Curated marketplace</td>
+            <td class="num">~0% on MP3</td>
+            <td>Curated trap/hip-hop crowd; taste-driven</td>
+            <td class="neg">No negotiation / counter-offers; narrow genre</td>
+          </tr>
+          <tr>
+            <th>BeatPass</th>
+            <td>Subscription + exclusive</td>
+            <td>varies</td>
+            <td class="pos">Negotiated exclusives &amp; custom beats between users</td>
+            <td>Newer, smaller network</td>
+          </tr>
+          <tr>
+            <th>Self-host / Soundee</th>
+            <td>Your own store</td>
+            <td class="pos num">lowest</td>
+            <td class="pos">Full control &amp; margin</td>
+            <td class="neg">Zero audience — you bring all traffic</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note">Sources: BeatPass, Feedtracks, SlimeGreenBeats, Audio Assemble platform comparisons; UnitedMasters &amp; Orphiq licensing guides (2025–26).</p>
+
+    <h3>The one mechanic that runs the whole market: tiered licensing</h3>
+    <p>Nearly every sale is a <strong>license</strong>, not a file transfer. Producers stack tiers — the difference between them is <em class="term">what file you get</em>, <em class="term">how far you can use it</em>, and <em class="term">whether others can still buy it after you</em>:</p>
+    <ul class="clean">
+      <li><strong>Non-exclusive (lease)</strong> — cheap ($20–50), sold to unlimited buyers, MP3/WAV, capped use. This is where the volume money is: one popular beat leased 50× at $50 = $2,500, far more than a single exclusive.</li>
+      <li><strong>Premium / trackout lease</strong> — mid-price, stems included, higher usage caps.</li>
+      <li><strong>Exclusive</strong> — ownership transfers, beat is pulled from the store. $200–500 for a bedroom producer; $2k–10k+ with real placements.</li>
+    </ul>
+    <h3>The fork: two viable positions, and they pull apart</h3>
+    <p>One thing is settled — you cannot out-audience BeatStars and shouldn't try. But there are two credible answers to <em class="term">what beatbox is instead</em>, and they imply different products. This is the decision everything else hangs off, so it's laid out rather than assumed.</p>
+
+    <div class="fork">
+      <div class="path">
+        <p class="label">Path A · Design-forward storefront</p>
+        <p>A beautiful, low-take home for <strong>one producer's own catalog</strong> — the Airbit shape. The wedge is the thing incumbents are ugly at: identity and feel.</p>
+        <ul class="clean">
+          <li><b>For:</b> one-sided, so it works with zero network. Ships far sooner. Your aesthetic <em>is</em> the product.</li>
+          <li><b>Against:</b> you bring all the traffic. Ceiling is your own audience.</li>
+          <li><b>Needs:</b> storefront, licensing, checkout. No messaging required.</li>
+        </ul>
+      </div>
+      <div class="path">
+        <p class="label">Path B · Negotiation marketplace</p>
+        <p>Compete where the market is genuinely weak: the <strong>human transaction</strong>. Traktrain has no negotiation at all; BeatPass only gestures at it. Offers, counter-offers, custom briefs.</p>
+        <ul class="clean">
+          <li><b>For:</b> a real differentiator, not a nicer skin. Exclusives and custom work are where the money and relationships form.</li>
+          <li><b>Against:</b> two-sided — needs producers <em>and</em> buyers before it does anything. Classic cold-start.</li>
+          <li><b>Needs:</b> everything in Path A, plus identity, threads, offer state.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <p class="label">How to decide</p>
+      <p>The stages below are sequenced so <strong>you don't have to choose yet</strong> — Path A's build is a strict subset of Path B's. Build the storefront, and the fork stays open until the correspondence stage. Decide then, on evidence: if the inquiry button gets used, that's Path B telling you it's real.</p>
+    </div>
+  </section>
+
+  <!-- 03 — UX RESEARCH -->
+  <section>
+    <div class="sec-head"><span class="sec-num mono">03</span><h2>UX findings — what buyers expect</h2></div>
+    <p>Across the platforms buyers use daily, a handful of patterns are effectively table stakes. Each maps to a decision for beatbox.</p>
+
+    <h3>Waveform preview is the single biggest gap</h3>
+    <p>Every modern beat player (BeatPass, Airbit, the WaveformPlayer-style tools) renders a <strong>clickable waveform</strong> with instant seek. Buyers audition by scrubbing to the drop — a plain play button feels a decade old. Your transport is solid; give it a waveform and click-to-seek and it instantly reads as current.</p>
+
+    <h3>The persistent play bar</h3>
+    <p>Playback must survive navigation. A buyer browsing a catalog should keep hearing the current beat while they scroll, filter, and open other pages — a global bar, not a player that stops when the view changes. Your carousel/list toggle already hints at this; formalize one persistent transport that outlives view switches.</p>
+
+    <h3>License options must be crystal-clear at the point of sale</h3>
+    <p>The recurring UX failure in this space is murky terms. The best flows show, on each beat, exactly <em class="term">what file, what usage, what price</em> per tier — before checkout, in plain language. Clarity here converts; ambiguity kills trust.</p>
+
+    <h3>Search, tags &amp; filter are how buyers actually shop</h3>
+    <p>Buyers arrive with intent: a mood, a BPM, a key, an artist to sound like. Tagging (genre, BPM, key, mood) plus filter/search is the primary navigation of a catalog — the carousel is a lovely front door but a poor filing cabinet. Your <span class="mono">beat-data.js</span> schema already anticipates this; it just needs the fields and the filter UI.</p>
+
+    <h3>Keep the checkout flow short</h3>
+    <p>Conversion rises the shorter the path from <em class="term">hear it</em> → <em class="term">pick license</em> → <em class="term">pay</em>. Cart optional; one-beat instant checkout should be possible.</p>
+
+    <h3>Tagged previews — or you're giving the product away</h3>
+    <p>Every commercial platform streams <strong>watermarked</strong> previews: a producer voice tag dropped every ~15 seconds over the audition file, with the clean version released only after purchase. Without it, the preview <em>is</em> the deliverable and there is no reason to pay. Your player currently serves the raw file straight from <span class="mono">banks/&lt;bank&gt;/&lt;file&gt;</span>. This is the one item on this page that is load-bearing for revenue existing at all.</p>
+
+    <div class="risk">
+      <p class="label">Two risks specific to your build</p>
+      <p><strong>The fixed <span class="mono">viewBox="0 0 100 100"</span> won't survive mobile.</strong> A large share of beat browsing happens on phones, and the layout's coordinates are absolute. The SVG identity is worth protecting — but it needs a responsive strategy that keeps the character without the rigid grid, and that's easier to design now than to retrofit later.</p>
+      <p><strong>The transport is invisible to keyboards and screen readers.</strong> Hit detection in <span class="mono">transport.js</span> is coordinate math against click position, not focusable DOM elements — so play, prev and next can't be tabbed to or announced. Acceptable in an art piece; a genuine accessibility and legal problem once money changes hands.</p>
+    </div>
+
+    <div class="verdict">
+      <p class="label">On your questions — tagging &amp; notes</p>
+      <p><strong>Tagging: yes, essential</strong> — genre, BPM, key, mood. It's core navigation, not a nice-to-have. <strong>Notes: yes, but scope them.</strong> Private buyer notes (saved/bookmarked beats — your ★ already exists) are cheap and useful. Public "notes" blur into reviews/comments; defer those until there's a community to moderate.</p>
+    </div>
+  </section>
+
+  <!-- 04 — MECHANISMS -->
+  <section>
+    <div class="sec-head"><span class="sec-num mono">04</span><h2>Your three mechanisms — how to actually build them</h2></div>
+
+    <h3>Trading mechanism</h3>
+    <p>Don't build "trading" as barter — the market's trade is <strong>licensing</strong>. Implement it as: each beat carries a set of license tiers (lease / premium / exclusive), each with a price, a deliverable (MP3 / WAV / stems), and terms text. "Sold exclusively" flips the beat to unlisted. That <em>is</em> the trade.</p>
+
+    <h3>Payment mechanism</h3>
+    <p>Ko-fi is the right instinct for <strong>speed</strong> but the wrong shape for a licensed catalog — it's tip/single-product-first and won't hand back a signed license PDF or per-track terms. Realistic options:</p>
+    <div class="table-scroll">
+      <table class="cmp">
+        <thead><tr><th>Option</th><th>Good for</th><th>Cost</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><th>Ko-fi Shop</th><td>Fastest launch, no backend</td><td class="pos num">~0–5%</td><td>Fine for a v0 "buy" button; no license automation</td></tr>
+          <tr><th>Stripe Checkout</th><td>Real catalog, licenses, control</td><td class="num">~2.9% + 30¢</td><td class="pos">The right long-term core — single seller</td></tr>
+          <tr><th>Stripe Connect</th><td>Paying <em>other</em> producers</td><td class="num">~2.9% + 30¢</td><td class="pos">Required for Path B; handles splits, payouts, tax</td></tr>
+          <tr><th>Gumroad / Lemon Squeezy</th><td>Digital delivery + license keys, low ops</td><td class="neg num">~5–10%</td><td>Great middle ground; delivery handled for you</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Recommendation: <strong>Ko-fi or Gumroad button now</strong> to prove someone will pay; migrate to <strong>Stripe</strong> once tiered licensing and gated file delivery exist. The one caveat: if you land on <strong>Path B</strong>, you need <strong>Stripe Connect</strong>, not plain Checkout — the moment money is owed to someone who isn't you, splits, payouts and tax paperwork stop being optional. Worth knowing before the migration, not during it.</p>
+
+    <h3>Correspondence mechanism</h3>
+    <p>This is your differentiator — Traktrain notably <em>lacks</em> negotiation, and exclusive deals are where relationships (and real money) form. Build it in two stages: first an <strong>inquiry/offer</strong> button per beat ("make an offer" → sends producer a message), then lightweight threaded messaging. The envelope icon already in your sidebar is the natural home for an inbox.</p>
+  </section>
+
+  <!-- 05 — ROADMAP -->
+  <section>
+    <div class="sec-head"><span class="sec-num mono">05</span><h2>What to build, in order</h2></div>
+    <p class="lead">Sequenced so each stage is independently shippable and each unlocks the next. The gate on everything is the same: <strong>a backend.</strong></p>
+
+    <div class="tiers">
+      <div class="tier now">
+        <div class="thead"><h3>Build now</h3><span class="when mono">foundation</span></div>
+        <p class="goal">Turn the prototype into something that remembers and can take money.</p>
+        <ul class="clean">
+          <li>Backend + database — persist beats, uploads, accounts (Supabase/Firebase is enough)</li>
+          <li>Real file storage for audio + artwork (replaces blob URLs)</li>
+          <li>License tiers on each beat (lease / premium / exclusive + terms)</li>
+          <li>Waveform preview with click-to-seek + one persistent play bar</li>
+          <li>Tagged/watermarked preview streams — clean files only after purchase</li>
+          <li>A single payment button (Ko-fi or Gumroad) to prove willingness to pay</li>
+        </ul>
+      </div>
+
+      <div class="tier next">
+        <div class="thead"><h3>Next</h3><span class="when mono">a real store</span></div>
+        <p class="goal">Make it navigable and make the sale clean.</p>
+        <ul class="clean">
+          <li>Tags + search + filter (genre, BPM, key, mood)</li>
+          <li>Stripe checkout with gated file delivery + auto license PDF</li>
+          <li>Per-producer store pages (the Airbit-style wedge)</li>
+          <li>Saved / bookmarked beats tied to accounts (your ★, persisted)</li>
+          <li>Responsive layout strategy — the fixed viewBox, solved deliberately</li>
+          <li>Focusable, keyboard-operable transport controls</li>
+          <li>"Make an offer" inquiry button per beat → producer inbox <em class="term">(the fork)</em></li>
+        </ul>
+      </div>
+
+      <div class="tier later">
+        <div class="thead"><h3>Later</h3><span class="when mono">network effects</span></div>
+        <p class="goal">Only once there are producers and buyers to connect.</p>
+        <ul class="clean">
+          <li>Threaded messaging / negotiation on exclusives</li>
+          <li>Producer analytics (plays, conversion)</li>
+          <li>Public reviews / comments (needs moderation)</li>
+          <li>Playlists, collections, discovery/curation</li>
+          <li>Subscription tier for buyers (BeatPass-style)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="mono">beatbox · market &amp; UX research · v2</p>
+    <p>Next decision point: pick the backend (Supabase recommended for speed) and commit to the licensing data model — everything downstream hangs off those two choices. The Path A / Path B fork stays open until the correspondence stage; don't force it early.</p>
+  </footer>
+
+</div>
+</body>
+</html>

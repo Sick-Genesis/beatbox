@@ -89,9 +89,20 @@
 
   function loadTrack(track) {
     if (!track) return;
-    const url = track.audioBlob
-      ? URL.createObjectURL(track.audioBlob)
-      : `banks/${track.bank}/${track.file}`;
+
+    // Source priority:
+    //   1. audioBlob — picked in this session, not yet uploaded
+    //   2. audioUrl  — absolute URL from Supabase storage
+    //   3. banks/…   — the original local file layout, for placeholder data
+    let url;
+    if (track.audioBlob) {
+      url = URL.createObjectURL(track.audioBlob);
+    } else if (track.audioUrl) {
+      url = track.audioUrl;
+    } else {
+      url = `banks/${track.bank}/${track.file}`;
+    }
+
     audio.src = url;
     audio.load();
   }
