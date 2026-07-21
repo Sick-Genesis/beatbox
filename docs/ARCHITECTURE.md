@@ -205,6 +205,8 @@ Supabase (hosted Postgres). Files:
   rewrites `accept_trade_offer()` again
 - `supabase/migrations/005_roles.sql` — buyer/producer roles, upload gated
   on role, self-promotion blocked
+- `supabase/migrations/006_producer_as_capability.sql` — drops the signup
+  role choice; producer is earned via `become_producer()` on first upload
 
 Run in order via the Supabase SQL editor. Both are idempotent.
 
@@ -386,30 +388,42 @@ email (rather than a link logged to the server console).
 `initAuthUI()` is called from `main.js` and **bails when Supabase is
 unconfigured**, so the bar never appears with nothing behind it.
 
-### Roles
+### Roles — producer is a capability, not an identity
 
-`profiles.role` is `buyer` or `producer`. Buyers license beats; producers
-also upload and trade. Signup is open to both — anyone can choose
-producer.
+**Everyone can buy, license and trade from the moment they sign up.**
+`profiles.role` gates exactly one thing: uploading. Nothing else in the
+schema has ever checked it.
+
+That matters because producers buy constantly — producers licensing and
+trading each other's beats is much of the activity in this market. An
+earlier version presented buyer/producer as a choice at signup, which
+implied producers don't buy and created dead-end accounts: pick `buyer`,
+later want to upload, and there was no way out.
+
+The flow now:
+
+1. Sign up — no role question. You get `buyer`, and can license and trade.
+2. First upload — accepting the rights warranty calls `become_producer()`,
+   which promotes the account and records `producer_since` plus the
+   warranty wording.
+3. Upload proceeds.
 
 Three things keep the role honest:
 
-- The role arrives as **signup metadata** and is applied by
-  `handle_new_user()`, which coerces anything unexpected to `buyer`. A
-  malformed or hostile value can only ever *under*-privilege.
-- A `profiles_pin_role` trigger blocks changing `role` from any session
-  with an `auth.uid()`, so a user can edit their display name but cannot
-  promote themselves. Service-role connections (`auth.uid()` is null) are
-  the admin path.
+- `handle_new_user()` **always** writes `buyer`. It no longer reads a role
+  from signup metadata, so a crafted request cannot skip the warranty.
+- `prevent_role_self_change()` blocks every client-side role change except
+  the one sanctioned transition: `buyer → producer` with the warranty
+  columns set alongside it. Demotion and everything else still raises.
 - The beat insert policy requires `is_producer()`.
 
 > The role is read from the profiles row, **not** from a token claim.
 > That's the main departure from `live-love-vomit`, and it means a role
 > change takes effect on the next read rather than when a token expires.
 
-Since producer signup is open, strangers can upload from day one — which
-makes the rights warranty and takedown machinery in `004` load-bearing
-rather than precautionary.
+Since anyone can become a producer by accepting the warranty, strangers
+can upload from day one — which makes the rights warranty and takedown
+machinery in `004` load-bearing rather than precautionary.
 
 ---
 

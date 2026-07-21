@@ -12,7 +12,7 @@
 import { fetchBeats, syncInto, createBeat, RIGHTS_WARRANTY_TEXT } from './beats-repo.js';
 import { isConfigured } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
-import { getSession } from './auth.js';
+import { getSession, becomeProducer } from './auth.js';
 
 // upload.js is a classic script and cannot import ES modules, so the
 // pieces it needs are published on window. Same bridge the rest of this
@@ -21,6 +21,7 @@ window.beatboxApi = {
   isConfigured,
   createBeat,
   getSession,
+  becomeProducer,
   reloadBeats: loadBeats,
   RIGHTS_WARRANTY_TEXT,
 };

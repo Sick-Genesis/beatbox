@@ -83,33 +83,16 @@ export function openSignUp() {
     ${field('su-email', 'email', 'email', 'autocomplete="email" placeholder="you@example.com"')}
     ${field('su-handle', 'handle', 'text', 'autocomplete="username" placeholder="3–30 letters, numbers or _"')}
     ${field('su-pass', 'password', 'password', 'autocomplete="new-password" placeholder="at least 8 characters"')}
-    <label class="auth-field" for="su-role">
-      <span>account type</span>
-      <select id="su-role">
-        <option value="buyer">buyer — license beats</option>
-        <option value="producer">producer — upload, sell and trade</option>
-      </select>
-    </label>
-    <p class="auth-note" id="su-role-note"></p>
+    <p class="auth-note">
+      You can license and trade beats straight away. Uploading your own
+      unlocks the first time you post one.
+    </p>
     <p class="auth-error" id="su-error" role="alert"></p>
     <div class="auth-actions">
       <button class="auth-btn" id="su-cancel" type="button">cancel</button>
       <button class="auth-btn auth-btn--primary" id="su-submit" type="button">create</button>
     </div>
   `, (overlay) => {
-    const roleSelect = overlay.querySelector('#su-role');
-    const note = overlay.querySelector('#su-role-note');
-
-    // Producers take on obligations buyers don't. Saying so at signup is
-    // both fairer and useful evidence that it was disclosed.
-    const describeRole = () => {
-      note.textContent = roleSelect.value === 'producer'
-        ? 'As a producer you confirm you hold the rights to everything you upload.'
-        : '';
-    };
-    roleSelect.addEventListener('change', describeRole);
-    describeRole();
-
     overlay.querySelector('#su-cancel').addEventListener('click', closeModal);
     overlay.querySelector('#su-submit').addEventListener('click', submitSignUp);
     overlay.querySelector('#su-pass').addEventListener('keydown', (e) => {
@@ -127,12 +110,11 @@ async function submitSignUp() {
   const email = overlay.querySelector('#su-email').value;
   const handle = overlay.querySelector('#su-handle').value;
   const password = overlay.querySelector('#su-pass').value;
-  const role = overlay.querySelector('#su-role').value;
 
   btn.disabled = true;
   try {
     const { needsEmailConfirmation } = await signUp({
-      email, password, handle, displayName: handle, role,
+      email, password, handle, displayName: handle,
     });
     closeModal();
     toast(needsEmailConfirmation

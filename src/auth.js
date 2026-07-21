@@ -56,7 +56,7 @@ export async function getSession() {
   if (!cachedProfile || cachedProfile.id !== user.id) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, handle, display_name, bio, role')
+      .select('id, handle, display_name, bio, role, producer_since')
       .eq('id', user.id)
       .single();
     cachedProfile = profile ?? null;
@@ -65,21 +65,47 @@ export async function getSession() {
   return {
     id: user.id,
     email: user.email,
-    displayName: cachedProfile?.display_name ?? 'producer',
+    displayName: cachedProfile?.display_name ?? 'listener',
     handle: cachedProfile?.handle ?? null,
     role: cachedProfile?.role ?? 'buyer',
+
+    // Everyone can buy, license and trade. isProducer only gates uploading.
     isProducer: cachedProfile?.role === 'producer',
+    producerSince: cachedProfile?.producer_since ?? null,
   };
+}
+
+/**
+ * Accept the rights warranty and gain upload access.
+ *
+ * The only supported route from buyer to producer — the database trigger
+ * blocks every other client-side role change. Called on a first upload
+ * rather than presented as a separate step.
+ */
+export async function becomeProducer(warrantyText) {
+  if (!isConfigured) throw new Error('Supabase is not configured.');
+
+  const { error } = await supabase.rpc('become_producer', {
+    warranty_text: warrantyText,
+  });
+
+  if (error) throw new Error(error.message.replace(/^.*?:\s*/, ''));
+
+  cachedProfile = null;
+  const session = await getSession();
+  emit(session);
+  return session;
 }
 
 /**
  * Create an account.
  *
- * `role` is passed as signup metadata and applied by the handle_new_user()
- * trigger, which coerces anything unexpected to 'buyer'. It is never
- * trusted as sent — the database decides.
+ * There is no role to choose. Everyone can buy, license and trade from
+ * signup; producer is earned by accepting the rights warranty on a first
+ * upload (see becomeProducer). The handle_new_user() trigger always
+ * writes 'buyer', so a crafted request cannot skip that gate.
  */
-export async function signUp({ email, password, displayName, handle, role = 'buyer' }) {
+export async function signUp({ email, password, displayName, handle }) {
   if (!isConfigured) throw new Error('Supabase is not configured.');
 
   if (!email?.trim()) throw new Error('Enter an email address.');
@@ -95,9 +121,8 @@ export async function signUp({ email, password, displayName, handle, role = 'buy
     password,
     options: {
       data: {
-        display_name: displayName?.trim() || handle?.trim() || 'producer',
+        display_name: displayName?.trim() || handle?.trim() || 'listener',
         handle: handle?.trim() || '',
-        role: role === 'producer' ? 'producer' : 'buyer',
       },
     },
   });

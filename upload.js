@@ -133,15 +133,18 @@
       setStatus('Sign in to upload a beat.', true);
       return;
     }
-    if (!session.isProducer) {
-      setStatus('Only producer accounts can upload beats.', true);
-      return;
-    }
 
     submitBtn.disabled = true;
     setStatus('Uploading…');
 
     try {
+      // Accepting the rights warranty is what makes someone a producer.
+      // First upload promotes the account rather than turning it away.
+      if (!session.isProducer) {
+        setStatus('Setting up your producer account…');
+        await api.becomeProducer(api.RIGHTS_WARRANTY_TEXT);
+      }
+
       await api.createBeat({
         audioFile:   pendingAudio,
         artworkFile: pendingArtwork,
