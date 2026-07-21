@@ -94,6 +94,10 @@
 [data-theme="dark"] .upload-form__audio-zone  { background: #111; border-color: #333; }
 [data-theme="dark"] .upload-form__field input[type="text"] { color: #e0e0e0; border-bottom-color: #444; }
 [data-theme="dark"] .upload-form__field input[type="text"]:focus { border-bottom-color: #c8ff00; }
+[data-theme="dark"] .upload-form__field select { color: #e0e0e0; border-bottom-color: #444; background: #0e0e0e; }
+[data-theme="dark"] .upload-form__field select:focus { border-bottom-color: #c8ff00; }
+[data-theme="dark"] .upload-form__preview-input { background: #111; border-color: #333; }
+[data-theme="dark"] .upload-form__preview-input.has-file { border-color: #c8ff00; }
 [data-theme="dark"] .upload-form__check { color: #888; }
 [data-theme="dark"] .upload-form__check:hover { color: #c0c0c0; }
 [data-theme="dark"] .upload-form__status { color: #777; }

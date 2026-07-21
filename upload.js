@@ -26,8 +26,60 @@
   const statusEl       = document.getElementById('uploadStatus');
   const submitBtn      = document.getElementById('uploadSubmit');
 
+  const previewMode    = document.getElementById('previewMode');
+  const tagZone        = document.getElementById('tagZone');
+  const tagInput       = document.getElementById('tagFile');
+  const tagFilename    = document.getElementById('tagFilename');
+  const previewZone    = document.getElementById('previewZone');
+  const previewInput   = document.getElementById('previewFile');
+  const previewFilename = document.getElementById('previewFilename');
+
   let pendingAudio   = null;
   let pendingArtwork = null;
+  let pendingTag     = null;
+  let pendingPreview = null;
+
+  // Only the input relevant to the chosen preview mode is shown. 'platform'
+  // needs nothing extra, which is why it is the default.
+  function syncPreviewMode() {
+    const mode = previewMode?.value || 'platform';
+    if (tagZone)     tagZone.style.display     = mode === 'own_tag'  ? 'block' : 'none';
+    if (previewZone) previewZone.style.display = mode === 'supplied' ? 'block' : 'none';
+  }
+  previewMode?.addEventListener('change', syncPreviewMode);
+  syncPreviewMode();
+
+  // ── Tag and preview pickers ──
+  function wireFilePicker(zone, input, filenameEl, onPick) {
+    if (!zone || !input) return;
+
+    zone.addEventListener('click', () => input.click());
+    input.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      onPick(file);
+      if (filenameEl) filenameEl.textContent = file.name;
+      zone.classList.add('has-file');
+    });
+
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      onPick(file);
+      if (filenameEl) filenameEl.textContent = file.name;
+      zone.classList.add('has-file');
+    });
+  }
+
+  wireFilePicker(tagZone, tagInput, tagFilename, f => { pendingTag = f; });
+  wireFilePicker(previewZone, previewInput, previewFilename, f => { pendingPreview = f; });
 
   // Show the full warranty wording the uploader is agreeing to, taken from
   // the same constant that gets stored on the beat. Keeping one source
@@ -145,7 +197,7 @@
         await api.becomeProducer(api.RIGHTS_WARRANTY_TEXT);
       }
 
-      await api.createBeat({
+      const beat = await api.createBeat({
         audioFile:   pendingAudio,
         artworkFile: pendingArtwork,
         title:       trackNameInput.value.trim(),
@@ -156,15 +208,27 @@
         rightsWarranted: true,
         containsSamples: !!samplesCheck?.checked,
         sampleNotes:     sampleNotes?.value || '',
+        previewMode:     previewMode?.value || 'platform',
+        tagFile:         pendingTag,
+        previewFile:     pendingPreview,
       });
+
+      // The beat is a draft until its preview is generated server-side, so
+      // there is nothing to show until that finishes.
+      setStatus('Preparing your preview…');
+      const state = await api.awaitPreview(beat.id);
+
+      if (state === 'processing') {
+        setStatus('Still processing — it will appear once it is ready.');
+      } else {
+        setStatus('');
+        window.uploadToggle?.close?.();
+      }
 
       // Re-fetch so the new beat arrives with its server-side id and URLs
       // rather than being faked into the array locally.
       await api.reloadBeats();
-
-      setStatus('');
       resetForm();
-      window.uploadToggle?.close?.();
     } catch (e) {
       setStatus(e.message, true);
     } finally {
@@ -225,7 +289,18 @@
     if (artworkHolder) artworkHolder.style.display = 'block';
     pendingAudio   = null;
     pendingArtwork = null;
+    pendingTag     = null;
+    pendingPreview = null;
     audioInput.value = '';
+
+    if (tagInput)        tagInput.value = '';
+    if (previewInput)    previewInput.value = '';
+    if (tagFilename)     tagFilename.textContent = '';
+    if (previewFilename) previewFilename.textContent = '';
+    tagZone?.classList.remove('has-file');
+    previewZone?.classList.remove('has-file');
+    if (previewMode) previewMode.value = 'platform';
+    syncPreviewMode();
   }
 
   function flashError(el) {

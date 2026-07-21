@@ -215,6 +215,29 @@
             <input type="text" id="trackTags" placeholder="trap, dark, 808" autocomplete="off"/>
           </div>
 
+          <!-- How the public preview gets made. The clean file you upload
+               above is never served publicly. -->
+          <div class="upload-form__field">
+            <label for="previewMode">preview</label>
+            <select id="previewMode">
+              <option value="platform">add a beatbox tag</option>
+              <option value="own_tag">use my own tag</option>
+              <option value="supplied">I'll upload my own tagged version</option>
+            </select>
+          </div>
+
+          <div class="upload-form__preview-input" id="tagZone">
+            <div class="audio-zone__label" id="tagLabel">drop your tag (max 3s)</div>
+            <div class="audio-zone__filename" id="tagFilename"></div>
+            <input type="file" id="tagFile" accept=".wav,.mp3"/>
+          </div>
+
+          <div class="upload-form__preview-input" id="previewZone">
+            <div class="audio-zone__label" id="previewLabel">drop your tagged preview</div>
+            <div class="audio-zone__filename" id="previewFilename"></div>
+            <input type="file" id="previewFile" accept=".wav,.mp3"/>
+          </div>
+
           <!-- Rights declaration. createBeat() refuses without this, and a
                beat with no declaration cannot be traded. -->
           <label class="upload-form__check" for="rightsWarrant">

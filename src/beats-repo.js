@@ -10,8 +10,13 @@
 
 import { supabase, isConfigured } from './supabase-client.js';
 
-const AUDIO_BUCKET = 'beat-audio';
+const AUDIO_BUCKET = 'beat-audio';       // private — clean masters
+const PREVIEW_BUCKET = 'beat-previews';  // public  — tagged previews
+const TAG_BUCKET = 'beat-tags';          // private — producer tags
 const ARTWORK_BUCKET = 'beat-artwork';
+
+/** Producer tags longer than this are rejected. Matches the Edge Function. */
+export const TAG_MAX_SECONDS = 3;
 
 /**
  * Turn a storage path into a playable URL.
@@ -36,11 +41,15 @@ function toBeatBankEntry(row) {
     artist: row.artist || 'unknown',
     artwork: publicUrl(ARTWORK_BUCKET, row.artwork_path),
 
-    // transport.js builds `banks/<bank>/<file>` when there is no audioBlob.
-    // Providing an absolute audioUrl lets it skip that path construction.
-    audioUrl: publicUrl(AUDIO_BUCKET, row.audio_path),
+    // What plays is ALWAYS the tagged preview. The clean master lives in a
+    // private bucket and only leaves it through the download-master
+    // function, after an entitlement check.
+    audioUrl: publicUrl(PREVIEW_BUCKET, row.preview_path),
     bank: row.producer_id,
-    file: row.audio_path,
+    file: row.preview_path,
+
+    previewState: row.preview_state,
+    previewMode: row.preview_mode,
 
     bpm: row.bpm,
     musicalKey: row.musical_key,
@@ -72,7 +81,8 @@ export async function fetchBeats({ limit = 100 } = {}) {
   const { data, error } = await supabase
     .from('beats')
     .select(`
-      id, producer_id, rights_holder_id, title, artist, audio_path, artwork_path,
+      id, producer_id, rights_holder_id, title, artist, artwork_path,
+      preview_path, preview_state, preview_mode,
       bpm, musical_key, tags, duration_sec, status, created_at,
       withdrawn_at, contains_samples,
       license_tiers ( id, kind, price_cents, currency, deliverable, terms )
@@ -118,6 +128,20 @@ export const RIGHTS_WARRANTY_TEXT =
   'cleared, and that licensing it through beatbox does not infringe ' +
   "anyone else's rights.";
 
+/**
+ * Upload a beat.
+ *
+ * The clean master always goes to the private bucket. How the public
+ * preview is made depends on previewMode:
+ *
+ *   'platform' — beatbox laces in its own tag (default)
+ *   'own_tag'  — producer supplies a short tag (<= TAG_MAX_SECONDS)
+ *   'supplied' — producer supplies a finished, already-tagged preview
+ *
+ * The beat is created as a DRAFT and only publishes once its preview
+ * exists — a database trigger enforces that, so a bug here cannot leave a
+ * clean file listed publicly.
+ */
 export async function createBeat({
   audioFile,
   artworkFile,
@@ -130,6 +154,9 @@ export async function createBeat({
   rightsWarranted = false,
   containsSamples = null,
   sampleNotes = '',
+  previewMode = 'platform',
+  tagFile = null,
+  previewFile = null,
 }) {
   if (!isConfigured) throw new Error('Supabase is not configured.');
 
@@ -159,6 +186,9 @@ export async function createBeat({
     throw new Error(`Audio upload failed: ${audioUpload.error.message}`);
   }
 
+  // Track everything uploaded so a later failure can clean up after itself.
+  const uploaded = [[AUDIO_BUCKET, audioPath]];
+
   let artworkPath = null;
   if (artworkFile) {
     const artExt = artworkFile.name.split('.').pop().toLowerCase();
@@ -171,7 +201,61 @@ export async function createBeat({
     if (artUpload.error) {
       console.warn('[beatbox] Artwork upload failed:', artUpload.error.message);
       artworkPath = null;
+    } else {
+      uploaded.push([ARTWORK_BUCKET, artworkPath]);
     }
+  }
+
+  // ── Preview inputs ──
+  //
+  // These are what the Edge Function works from. The preview itself is
+  // generated server-side, except in 'supplied' mode where the producer
+  // has already made one.
+
+  let tagPath = null;
+  if (previewMode === 'own_tag') {
+    if (!tagFile) {
+      await cleanUp(uploaded);
+      throw new Error('Upload a tag, or let beatbox add one for you.');
+    }
+
+    const seconds = await audioDuration(tagFile);
+    if (seconds > TAG_MAX_SECONDS + 0.25) {   // small tolerance for encoding
+      await cleanUp(uploaded);
+      throw new Error(`Tags need to be ${TAG_MAX_SECONDS} seconds or shorter.`);
+    }
+
+    const tagExt = tagFile.name.split('.').pop().toLowerCase();
+    tagPath = `${user.id}/${stamp}-tag.${tagExt}`;
+    const tagUpload = await supabase.storage
+      .from(TAG_BUCKET)
+      .upload(tagPath, tagFile, { upsert: false });
+
+    if (tagUpload.error) {
+      await cleanUp(uploaded);
+      throw new Error(`Tag upload failed: ${tagUpload.error.message}`);
+    }
+    uploaded.push([TAG_BUCKET, tagPath]);
+  }
+
+  let previewPath = null;
+  if (previewMode === 'supplied') {
+    if (!previewFile) {
+      await cleanUp(uploaded);
+      throw new Error('Upload your tagged preview, or let beatbox make one.');
+    }
+
+    const pvExt = previewFile.name.split('.').pop().toLowerCase();
+    previewPath = `${user.id}/${stamp}-preview.${pvExt}`;
+    const pvUpload = await supabase.storage
+      .from(PREVIEW_BUCKET)
+      .upload(previewPath, previewFile, { upsert: false });
+
+    if (pvUpload.error) {
+      await cleanUp(uploaded);
+      throw new Error(`Preview upload failed: ${pvUpload.error.message}`);
+    }
+    uploaded.push([PREVIEW_BUCKET, previewPath]);
   }
 
   const { data: beat, error: insertError } = await supabase
@@ -193,16 +277,21 @@ export async function createBeat({
       rights_warranty_text: RIGHTS_WARRANTY_TEXT,
       contains_samples: containsSamples,
       sample_notes: sampleNotes?.trim() || null,
+
+      // Draft until a preview exists. The beats_require_preview trigger
+      // refuses to publish without one, so the clean master can never be
+      // listed by mistake.
+      status: 'draft',
+      preview_mode: previewMode,
+      preview_path: previewPath,
+      preview_state: 'pending',
+      tag_path: tagPath,
     })
     .select()
     .single();
 
   if (insertError) {
-    // Don't leave an orphaned file in storage behind a failed row.
-    await supabase.storage.from(AUDIO_BUCKET).remove([audioPath]);
-    if (artworkPath) {
-      await supabase.storage.from(ARTWORK_BUCKET).remove([artworkPath]);
-    }
+    await cleanUp(uploaded);
     throw new Error(`Could not save beat: ${insertError.message}`);
   }
 
@@ -221,7 +310,94 @@ export async function createBeat({
     }
   }
 
+  // Kick off preview generation. Deliberately not awaited for its result
+  // beyond dispatch: the beat is safely a draft either way, and making the
+  // producer wait on ffmpeg would block the form for no benefit.
+  const { error: fnError } = await supabase.functions.invoke('generate-preview', {
+    body: { beatId: beat.id },
+  });
+
+  if (fnError) {
+    console.warn('[beatbox] Preview generation could not start:', fnError.message);
+  }
+
   return toBeatBankEntry({ ...beat, license_tiers: [] });
+}
+
+/**
+ * Poll until a beat's preview finishes processing.
+ *
+ * Returns the final state. Callers use this to tell a producer when their
+ * upload has gone live, since publication happens server-side.
+ */
+export async function awaitPreview(beatId, { timeoutMs = 120000 } = {}) {
+  if (!isConfigured) return 'ready';
+
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const { data } = await supabase
+      .from('beats')
+      .select('preview_state, preview_error')
+      .eq('id', beatId)
+      .single();
+
+    if (data?.preview_state === 'ready') return 'ready';
+    if (data?.preview_state === 'failed') {
+      throw new Error(data.preview_error || 'Preview could not be generated.');
+    }
+
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+
+  return 'processing';   // still going; not an error, just slow
+}
+
+/**
+ * Get a time-limited download link for a clean master.
+ * Entitlement is decided server-side by can_download_master().
+ */
+export async function getMasterDownloadUrl(beatId) {
+  if (!isConfigured) throw new Error('Supabase is not configured.');
+
+  const { data, error } = await supabase.functions.invoke('download-master', {
+    body: { beatId },
+  });
+
+  if (error) throw new Error('Could not prepare the download.');
+  if (data?.error) throw new Error(data.error);
+
+  return data.url;
+}
+
+/** Remove uploaded objects after a failure, so nothing is orphaned. */
+async function cleanUp(uploaded) {
+  for (const [bucket, path] of uploaded) {
+    try {
+      await supabase.storage.from(bucket).remove([path]);
+    } catch {
+      // Best effort — the original error matters more than this one.
+    }
+  }
+}
+
+/** Read a file's duration by loading it into an <audio> element. */
+function audioDuration(file) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    audio.preload = 'metadata';
+
+    const done = (value) => {
+      URL.revokeObjectURL(url);
+      resolve(value);
+    };
+
+    audio.onloadedmetadata = () => done(audio.duration || 0);
+    // Unreadable metadata shouldn't block an upload — let the server decide.
+    audio.onerror = () => done(0);
+    audio.src = url;
+  });
 }
 
 /** Current session user, or null. */

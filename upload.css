@@ -164,6 +164,44 @@
   min-width: 0;
 }
 
+/* ── Preview mode select ── */
+.upload-form__field select {
+  border: none;
+  border-bottom: 1.5px solid #ccc;
+  padding: 3px 2px;
+  font-size: 11px;
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.upload-form__field select:focus { border-bottom-color: #000; }
+
+/* Tag / supplied-preview drop zones. Hidden unless their mode is chosen. */
+.upload-form__preview-input {
+  display: none;
+  border: 1.5px dashed #bbb;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8f8f8;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.upload-form__preview-input.drag-over {
+  border-color: #000;
+  background: #efefef;
+}
+
+.upload-form__preview-input.has-file {
+  border-style: solid;
+  border-color: #000;
+}
+
+.upload-form__preview-input input[type="file"] { display: none; }
+
 /* ── Checkboxes (rights warranty, samples) ── */
 .upload-form__check {
   display: flex;

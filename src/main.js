@@ -9,7 +9,10 @@
 // contents in place. If Supabase is unconfigured or returns nothing, the
 // placeholders simply stay — the app still runs.
 
-import { fetchBeats, syncInto, createBeat, RIGHTS_WARRANTY_TEXT } from './beats-repo.js';
+import {
+  fetchBeats, syncInto, createBeat, awaitPreview, getMasterDownloadUrl,
+  RIGHTS_WARRANTY_TEXT,
+} from './beats-repo.js';
 import { isConfigured } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
 import { getSession, becomeProducer } from './auth.js';
@@ -20,6 +23,8 @@ import { getSession, becomeProducer } from './auth.js';
 window.beatboxApi = {
   isConfigured,
   createBeat,
+  awaitPreview,
+  getMasterDownloadUrl,
   getSession,
   becomeProducer,
   reloadBeats: loadBeats,
