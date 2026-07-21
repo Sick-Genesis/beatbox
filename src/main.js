@@ -11,7 +11,7 @@
 
 import {
   fetchBeats, syncInto, createBeat, awaitPreview, getMasterDownloadUrl,
-  RIGHTS_WARRANTY_TEXT,
+  claimFreeBeat, RIGHTS_WARRANTY_TEXT, FREE_TERMS_TEXT,
 } from './beats-repo.js';
 import { isConfigured } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
@@ -25,10 +25,12 @@ window.beatboxApi = {
   createBeat,
   awaitPreview,
   getMasterDownloadUrl,
+  claimFreeBeat,
   getSession,
   becomeProducer,
   reloadBeats: loadBeats,
   RIGHTS_WARRANTY_TEXT,
+  FREE_TERMS_TEXT,
 };
 
 // True once real data has replaced the placeholders. Needed because an

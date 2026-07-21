@@ -215,6 +215,14 @@
             <input type="text" id="trackTags" placeholder="trap, dark, 808" autocomplete="off"/>
           </div>
 
+          <!-- Give it away. Hides the pricing/preview machinery, since a
+               free beat is served clean and carries no licence tiers. -->
+          <label class="upload-form__check" for="isFree">
+            <input type="checkbox" id="isFree"/>
+            <span>give this beat away for free</span>
+          </label>
+          <p class="upload-form__note" id="freeNote"></p>
+
           <!-- How the public preview gets made. The clean file you upload
                above is never served publicly. -->
           <div class="upload-form__field">

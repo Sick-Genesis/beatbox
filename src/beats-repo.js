@@ -51,6 +51,9 @@ function toBeatBankEntry(row) {
     previewState: row.preview_state,
     previewMode: row.preview_mode,
 
+    isFree: row.is_free ?? false,
+    freeTerms: row.free_terms ?? null,
+
     bpm: row.bpm,
     musicalKey: row.musical_key,
     tags: row.tags || [],
@@ -65,8 +68,12 @@ function toBeatBankEntry(row) {
     containsSamples: row.contains_samples,
 
     // Withdrawal is independent of status: a beat pulled under a rights
-    // claim is untradable whatever else is true of it.
-    tradable: row.status !== 'sold_exclusive' && !row.withdrawn_at,
+    // claim is untradable whatever else is true of it. Free beats have no
+    // scarcity to exchange, so they are excluded too — matching the RLS
+    // policy, which refuses such offers outright.
+    tradable: row.status !== 'sold_exclusive'
+      && !row.withdrawn_at
+      && !row.is_free,
 
     licenses: (row.license_tiers || [])
       .slice()
@@ -83,6 +90,7 @@ export async function fetchBeats({ limit = 100 } = {}) {
     .select(`
       id, producer_id, rights_holder_id, title, artist, artwork_path,
       preview_path, preview_state, preview_mode,
+      is_free, free_terms,
       bpm, musical_key, tags, duration_sec, status, created_at,
       withdrawn_at, contains_samples,
       license_tiers ( id, kind, price_cents, currency, deliverable, terms )
@@ -122,6 +130,20 @@ export function syncInto(targetArray, entries) {
  * This is scaffolding, not legal cover — real terms of service are
  * separate work.
  */
+/**
+ * The wording a producer agrees to when giving a beat away. Snapshotted
+ * onto the beat, like the rights warranty, because it will change.
+ *
+ * The two clauses that matter: the producer keeps ownership, and the
+ * grant cannot be taken back from anyone who already has it.
+ */
+export const FREE_TERMS_TEXT =
+  'I am giving this beat away: anyone may use it in any capacity, ' +
+  'including commercially, forever, with no fee and no credit required. ' +
+  'I keep ownership and may stop offering it later, but I cannot revoke ' +
+  'it from anyone who has already taken it. The full file will be ' +
+  'publicly downloadable, so this cannot be undone in practice.';
+
 export const RIGHTS_WARRANTY_TEXT =
   'I confirm I created this beat or otherwise hold the rights to license ' +
   'and trade it, that any third-party samples it contains have been ' +
@@ -157,6 +179,7 @@ export async function createBeat({
   previewMode = 'platform',
   tagFile = null,
   previewFile = null,
+  isFree = false,
 }) {
   if (!isConfigured) throw new Error('Supabase is not configured.');
 
@@ -178,8 +201,13 @@ export async function createBeat({
   const audioExt = audioFile.name.split('.').pop().toLowerCase();
   const audioPath = `${user.id}/${stamp}.${audioExt}`;
 
+  // A free beat is served clean, so its file goes straight to the public
+  // preview bucket — there is nothing to withhold. Paid beats keep their
+  // master private and stream a tagged copy instead.
+  const masterBucket = isFree ? PREVIEW_BUCKET : AUDIO_BUCKET;
+
   const audioUpload = await supabase.storage
-    .from(AUDIO_BUCKET)
+    .from(masterBucket)
     .upload(audioPath, audioFile, { upsert: false });
 
   if (audioUpload.error) {
@@ -187,7 +215,7 @@ export async function createBeat({
   }
 
   // Track everything uploaded so a later failure can clean up after itself.
-  const uploaded = [[AUDIO_BUCKET, audioPath]];
+  const uploaded = [[masterBucket, audioPath]];
 
   let artworkPath = null;
   if (artworkFile) {
@@ -213,7 +241,7 @@ export async function createBeat({
   // has already made one.
 
   let tagPath = null;
-  if (previewMode === 'own_tag') {
+  if (!isFree && previewMode === 'own_tag') {
     if (!tagFile) {
       await cleanUp(uploaded);
       throw new Error('Upload a tag, or let beatbox add one for you.');
@@ -239,7 +267,7 @@ export async function createBeat({
   }
 
   let previewPath = null;
-  if (previewMode === 'supplied') {
+  if (!isFree && previewMode === 'supplied') {
     if (!previewFile) {
       await cleanUp(uploaded);
       throw new Error('Upload your tagged preview, or let beatbox make one.');
@@ -278,14 +306,19 @@ export async function createBeat({
       contains_samples: containsSamples,
       sample_notes: sampleNotes?.trim() || null,
 
-      // Draft until a preview exists. The beats_require_preview trigger
-      // refuses to publish without one, so the clean master can never be
-      // listed by mistake.
-      status: 'draft',
-      preview_mode: previewMode,
-      preview_path: previewPath,
-      preview_state: 'pending',
+      // Free beats need no processing: the clean file is the preview, so
+      // they publish immediately. Paid beats stay draft until the Edge
+      // Function produces a tagged preview — the beats_require_preview
+      // trigger refuses to publish without one.
+      status: isFree ? 'published' : 'draft',
+      preview_mode: isFree ? 'supplied' : previewMode,
+      preview_path: isFree ? audioPath : previewPath,
+      preview_state: isFree ? 'ready' : 'pending',
       tag_path: tagPath,
+
+      is_free: isFree,
+      free_terms: isFree ? FREE_TERMS_TEXT : null,
+      free_since: isFree ? new Date().toISOString() : null,
     })
     .select()
     .single();
@@ -310,15 +343,18 @@ export async function createBeat({
     }
   }
 
-  // Kick off preview generation. Deliberately not awaited for its result
-  // beyond dispatch: the beat is safely a draft either way, and making the
-  // producer wait on ffmpeg would block the form for no benefit.
-  const { error: fnError } = await supabase.functions.invoke('generate-preview', {
-    body: { beatId: beat.id },
-  });
+  // Free beats are already live — nothing to tag.
+  if (!isFree) {
+    // Deliberately not awaited beyond dispatch: the beat is safely a draft
+    // either way, and making the producer wait on ffmpeg would block the
+    // form for no benefit.
+    const { error: fnError } = await supabase.functions.invoke('generate-preview', {
+      body: { beatId: beat.id },
+    });
 
-  if (fnError) {
-    console.warn('[beatbox] Preview generation could not start:', fnError.message);
+    if (fnError) {
+      console.warn('[beatbox] Preview generation could not start:', fnError.message);
+    }
   }
 
   return toBeatBankEntry({ ...beat, license_tiers: [] });
@@ -368,6 +404,25 @@ export async function getMasterDownloadUrl(beatId) {
   if (data?.error) throw new Error(data.error);
 
   return data.url;
+}
+
+/**
+ * Take a free beat.
+ *
+ * Recorded as a licence like any other, so a user's library is one list
+ * however each item was acquired, and so there is evidence of what terms
+ * applied on the day it was taken. Claiming twice is harmless — the
+ * existing licence is returned.
+ */
+export async function claimFreeBeat(beatId) {
+  if (!isConfigured) throw new Error('Supabase is not configured.');
+
+  const { data, error } = await supabase.rpc('claim_free_beat', {
+    p_beat_id: beatId,
+  });
+
+  if (error) throw new Error(error.message.replace(/^.*?:\s*/, ''));
+  return data;
 }
 
 /** Remove uploaded objects after a failure, so nothing is orphaned. */

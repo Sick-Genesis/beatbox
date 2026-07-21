@@ -225,6 +225,16 @@
 /* Hidden until samples are declared; JS toggles to flex. */
 .upload-form__samples { display: none; }
 
+/* Explanatory note under a choice with consequences (e.g. free beats). */
+.upload-form__note {
+  margin: -4px 0 0;
+  font-size: 8.5px;
+  line-height: 1.45;
+  color: #999;
+}
+
+.upload-form__note:empty { display: none; }
+
 /* ── Status line ── */
 .upload-form__status {
   margin: 0;

@@ -26,7 +26,10 @@
   const statusEl       = document.getElementById('uploadStatus');
   const submitBtn      = document.getElementById('uploadSubmit');
 
+  const freeCheck      = document.getElementById('isFree');
+  const freeNote       = document.getElementById('freeNote');
   const previewMode    = document.getElementById('previewMode');
+  const previewField   = previewMode?.closest('.upload-form__field');
   const tagZone        = document.getElementById('tagZone');
   const tagInput       = document.getElementById('tagFile');
   const tagFilename    = document.getElementById('tagFilename');
@@ -40,12 +43,32 @@
   let pendingPreview = null;
 
   // Only the input relevant to the chosen preview mode is shown. 'platform'
-  // needs nothing extra, which is why it is the default.
+  // needs nothing extra, which is why it is the default. A free beat is
+  // served clean, so the whole preview section goes away.
   function syncPreviewMode() {
+    const free = !!freeCheck?.checked;
     const mode = previewMode?.value || 'platform';
-    if (tagZone)     tagZone.style.display     = mode === 'own_tag'  ? 'block' : 'none';
-    if (previewZone) previewZone.style.display = mode === 'supplied' ? 'block' : 'none';
+
+    if (previewField) previewField.style.display = free ? 'none' : 'flex';
+    if (tagZone) {
+      tagZone.style.display = (!free && mode === 'own_tag') ? 'block' : 'none';
+    }
+    if (previewZone) {
+      previewZone.style.display = (!free && mode === 'supplied') ? 'block' : 'none';
+    }
+
+    // Say plainly that this cannot be undone — the file goes out publicly
+    // and copies cannot be recalled.
+    if (freeNote) {
+      freeNote.textContent = free
+        ? 'Anyone can use it commercially, forever, no credit needed. You keep '
+          + 'ownership, but the full file is public — you cannot take it back '
+          + 'from anyone who has it. Free beats have no price and cannot be traded.'
+        : '';
+    }
   }
+
+  freeCheck?.addEventListener('change', syncPreviewMode);
   previewMode?.addEventListener('change', syncPreviewMode);
   syncPreviewMode();
 
@@ -211,18 +234,24 @@
         previewMode:     previewMode?.value || 'platform',
         tagFile:         pendingTag,
         previewFile:     pendingPreview,
+        isFree:          !!freeCheck?.checked,
       });
 
-      // The beat is a draft until its preview is generated server-side, so
-      // there is nothing to show until that finishes.
-      setStatus('Preparing your preview…');
-      const state = await api.awaitPreview(beat.id);
-
-      if (state === 'processing') {
-        setStatus('Still processing — it will appear once it is ready.');
-      } else {
+      // A free beat is served clean and publishes immediately. A paid one
+      // stays draft until the preview is generated server-side.
+      if (freeCheck?.checked) {
         setStatus('');
         window.uploadToggle?.close?.();
+      } else {
+        setStatus('Preparing your preview…');
+        const state = await api.awaitPreview(beat.id);
+
+        if (state === 'processing') {
+          setStatus('Still processing — it will appear once it is ready.');
+        } else {
+          setStatus('');
+          window.uploadToggle?.close?.();
+        }
       }
 
       // Re-fetch so the new beat arrives with its server-side id and URLs
@@ -300,6 +329,7 @@
     tagZone?.classList.remove('has-file');
     previewZone?.classList.remove('has-file');
     if (previewMode) previewMode.value = 'platform';
+    if (freeCheck)   freeCheck.checked = false;
     syncPreviewMode();
   }
 
