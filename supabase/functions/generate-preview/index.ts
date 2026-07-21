@@ -18,8 +18,22 @@
 // Requires the platform tag at supabase/functions/generate-preview/
 // assets/platform-tag.mp3 (see README in that folder).
 
+// ⚠ AUDIO PROCESSING DOES NOT RUN HERE — see laceTag() at the bottom.
+//
+// Hosted Supabase Edge Functions cannot transcode audio:
+//   - Deno.Command is blocked, so there is no ffmpeg binary to invoke
+//   - ffmpeg.wasm is a browser build (Worker + SharedArrayBuffer) and its
+//     core alone is tens of MB, past the 256 MB memory ceiling
+//
+// This function is still the right place for the ORCHESTRATION — reading
+// the master, deciding the mode, publishing on success — but the actual
+// tagging has to happen in a container that has ffmpeg. laceTag() is the
+// seam: point it at that worker.
+//
+// Until then only preview_mode 'supplied' completes, and free beats,
+// which skip this path entirely.
+
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { FFmpeg } from 'npm:@ffmpeg/ffmpeg@0.12.10';
 
 const TAG_INTERVAL = 15;    // seconds between tag placements
 const TAG_MAX_SEC = 3;      // producer tags longer than this are rejected
@@ -156,59 +170,49 @@ async function publish(supabase: any, beatId: string) {
 /**
  * Overlay `tag` onto `master` every TAG_INTERVAL seconds.
  *
- * ffmpeg filter: delay the tag to each placement, mix them all into the
- * beat. `duration=first` keeps the output the length of the beat rather
- * than extending to the last tag.
+ * NOT IMPLEMENTED HERE — see the note at the top of this file. Edge
+ * Functions cannot run ffmpeg, so this delegates to a worker that can.
+ *
+ * Set TAGGER_URL and TAGGER_SECRET to a service that accepts the master
+ * and tag and returns the mixed audio. Anything with ffmpeg works:
+ * Fly.io, Cloud Run, Railway, a Lambda container.
+ *
+ * The filter graph that service should apply — delay a copy of the tag to
+ * each placement, then mix them all into the beat. `duration=first` keeps
+ * the output the length of the beat rather than extending to the last tag:
+ *
+ *   [1:a]adelay=15000|15000,volume=0.8[t0];
+ *   [1:a]adelay=30000|30000,volume=0.8[t1];
+ *   ...
+ *   [0:a][t0][t1]...amix=inputs=N:duration=first:dropout_transition=0[out]
  */
 async function laceTag(master: Uint8Array, tag: Uint8Array): Promise<Uint8Array> {
-  const ffmpeg = new FFmpeg();
-  await ffmpeg.load();
+  const taggerUrl = Deno.env.get('TAGGER_URL');
 
-  await ffmpeg.writeFile('in.audio', master);
-  await ffmpeg.writeFile('tag.audio', tag);
-
-  // How long is the beat? Needed to know how many tags to place.
-  const duration = await probeDuration(ffmpeg, 'in.audio');
-  const placements: number[] = [];
-  for (let t = TAG_INTERVAL; t < duration - 1; t += TAG_INTERVAL) {
-    placements.push(t);
+  if (!taggerUrl) {
+    throw new Error(
+      'Preview tagging is not configured yet. Set TAGGER_URL to a service '
+      + 'that can run ffmpeg, or upload your own tagged preview instead.'
+    );
   }
 
-  // A very short beat gets one tag at the start rather than none.
-  if (placements.length === 0) placements.push(0);
+  const form = new FormData();
+  form.append('master', new Blob([master]));
+  form.append('tag', new Blob([tag]));
+  form.append('intervalSeconds', String(TAG_INTERVAL));
+  form.append('tagGain', String(TAG_GAIN));
 
-  const delays = placements
-    .map((t, i) => `[1:a]adelay=${Math.round(t * 1000)}|${Math.round(t * 1000)},volume=${TAG_GAIN}[t${i}]`)
-    .join(';');
-  const inputs = placements.map((_, i) => `[t${i}]`).join('');
-
-  const filter =
-    `${delays};[0:a]${inputs}amix=inputs=${placements.length + 1}:duration=first:dropout_transition=0[out]`;
-
-  await ffmpeg.exec([
-    '-i', 'in.audio',
-    '-i', 'tag.audio',
-    '-filter_complex', filter,
-    '-map', '[out]',
-    '-b:a', '192k',
-    'out.mp3',
-  ]);
-
-  const out = await ffmpeg.readFile('out.mp3');
-  return out as Uint8Array;
-}
-
-async function probeDuration(ffmpeg: FFmpeg, file: string): Promise<number> {
-  let seconds = 0;
-  ffmpeg.on('log', ({ message }: { message: string }) => {
-    const m = message.match(/Duration:\s*(\d+):(\d+):(\d+\.?\d*)/);
-    if (m) {
-      seconds = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]);
-    }
+  const res = await fetch(taggerUrl, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${Deno.env.get('TAGGER_SECRET') ?? ''}` },
+    body: form,
   });
-  // ffmpeg writes duration to the log during any read of the file.
-  await ffmpeg.exec(['-i', file, '-f', 'null', '-']);
-  return seconds || 120;   // fall back to a sane default rather than zero
+
+  if (!res.ok) {
+    throw new Error(`Tagging service failed: ${res.status} ${await res.text()}`);
+  }
+
+  return new Uint8Array(await res.arrayBuffer());
 }
 
-export { TAG_MAX_SEC };
+export { TAG_MAX_SEC, TAG_INTERVAL, TAG_GAIN };

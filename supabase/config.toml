@@ -1,0 +1,22 @@
+# Supabase CLI config
+#
+# Link this directory to the hosted project once:
+#   npx supabase login
+#   npx supabase link --project-ref vbtbxvoevgnysqkmmfeo
+#
+# Then deploy the Edge Functions:
+#   npx supabase functions deploy generate-preview
+#   npx supabase functions deploy download-master
+
+project_id = "beatbox"
+
+[functions.generate-preview]
+# Called right after upload with a beat id. Runs with the service role so
+# it can read the private master bucket, so it must not be callable by
+# just anyone — it checks nothing about the caller itself.
+verify_jwt = true
+
+[functions.download-master]
+# Mints signed URLs for clean masters. Entitlement is checked inside the
+# function via can_download_master(), which needs the caller's JWT.
+verify_jwt = true
