@@ -151,6 +151,13 @@
   <!-- Upload overlay — shown/hidden by upload-toggle.js via .is-visible -->
   <div class="upload-container">
     <div class="upload-container__box">
+
+      <!-- Window title bar: labels the window, drags it, and closes it. -->
+      <div class="window-titlebar" id="uploadTitlebar">
+        <span class="window-titlebar__label">Upload beat</span>
+        <button class="window-titlebar__close" id="uploadClose" type="button" aria-label="Close">✕</button>
+      </div>
+
       <div class="upload-form">
 
         <!-- Left: artwork drag/drop zone -->
