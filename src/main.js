@@ -16,7 +16,7 @@ import {
 import { isConfigured } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
 import { getSession, becomeProducer } from './auth.js';
-import { tagBeat as runTagger, canTagInBrowser } from './tagger.js';
+import { tagBeat as runTagger, canTagInBrowser, extractPeaks } from './tagger.js';
 
 // The platform tag lives in the public dir (asset/), so it is referenced by
 // its served path rather than imported — Vite copies asset/ verbatim.
@@ -54,6 +54,7 @@ window.beatboxApi = {
   isConfigured,
   createBeat,
   tagBeat,
+  extractPeaks,
   getMasterDownloadUrl,
   claimFreeBeat,
   getSession,

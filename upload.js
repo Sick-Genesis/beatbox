@@ -238,9 +238,14 @@
         });
       }
 
+      // Extract waveform peaks from the clean beat for the transport
+      // display. Non-fatal: a failure just means a flat bar.
+      const peaks = await api.extractPeaks(pendingAudio);
+
       setStatus('Uploading…');
       await api.createBeat({
         audioFile:   pendingAudio,
+        peaks,
         artworkFile: pendingArtwork,
         title:       trackNameInput.value.trim(),
         artist:      artistInput.value.trim(),

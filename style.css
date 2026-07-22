@@ -108,6 +108,12 @@
 [data-theme="dark"] .upload-form__check { color: #888; }
 [data-theme="dark"] .upload-form__check:hover { color: #c0c0c0; }
 [data-theme="dark"] .upload-form__status { color: #777; }
+/* Waveform bars in the transport deck */
+.wave-bar { fill: #cfcfcf; }
+.wave-bar.is-played { fill: #111; }
+[data-theme="dark"] .wave-bar { fill: #333; }
+[data-theme="dark"] .wave-bar.is-played { fill: #c8ff00; }
+
 [data-theme="dark"] .window-titlebar { background: #c8ff00; color: #0e0e0e; }
 [data-theme="dark"] .window-titlebar__close { color: #0e0e0e; }
 [data-theme="dark"] .window-titlebar__close:hover { background: #0e0e0e; color: #c8ff00; }

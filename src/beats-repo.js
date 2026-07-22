@@ -50,6 +50,9 @@ function toBeatBankEntry(row) {
     isFree: row.is_free ?? false,
     freeTerms: row.free_terms ?? null,
 
+    // Waveform amplitudes for the transport display, or null → flat bar.
+    peaks: Array.isArray(row.peaks) ? row.peaks : null,
+
     bpm: row.bpm,
     musicalKey: row.musical_key,
     tags: row.tags || [],
@@ -86,7 +89,7 @@ export async function fetchBeats({ limit = 100 } = {}) {
     .select(`
       id, producer_id, rights_holder_id, title, artist, artwork_path,
       preview_path, preview_state, preview_mode,
-      is_free, free_terms,
+      is_free, free_terms, peaks,
       bpm, musical_key, tags, duration_sec, status, created_at,
       withdrawn_at, contains_samples,
       license_tiers ( id, kind, price_cents, currency, deliverable, terms )
@@ -175,6 +178,7 @@ export async function createBeat({
   previewMode = 'platform',
   previewFile = null,   // the finished, browser-tagged preview (paid beats)
   isFree = false,
+  peaks = null,         // waveform amplitudes, extracted in the browser
 }) {
   if (!isConfigured) throw new Error('Supabase is not configured.');
 
@@ -292,6 +296,8 @@ export async function createBeat({
       is_free: isFree,
       free_terms: isFree ? FREE_TERMS_TEXT : null,
       free_since: isFree ? new Date().toISOString() : null,
+
+      peaks,
     })
     .select()
     .single();

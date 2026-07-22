@@ -40,6 +40,46 @@ export function canTagInBrowser() {
   return typeof SharedArrayBuffer !== 'undefined' && crossOriginIsolated === true;
 }
 
+/**
+ * Extract ~`bars` normalised amplitude peaks (0..1) from an audio file, for
+ * the waveform display. Runs via the Web Audio API — decode once, take the
+ * max absolute sample in each bucket, normalise to the loudest bucket.
+ *
+ * Independent of ffmpeg, so it works even where tagging can't. Returns null
+ * on failure; the UI falls back to a flat bar rather than breaking.
+ */
+export async function extractPeaks(file, bars = 120) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    const channel = buf.getChannelData(0);          // left channel is enough
+    const bucketSize = Math.floor(channel.length / bars) || 1;
+
+    const peaks = [];
+    let max = 0;
+    for (let i = 0; i < bars; i++) {
+      let peak = 0;
+      const start = i * bucketSize;
+      for (let j = 0; j < bucketSize; j++) {
+        const v = Math.abs(channel[start + j] || 0);
+        if (v > peak) peak = v;
+      }
+      peaks.push(peak);
+      if (peak > max) max = peak;
+    }
+
+    ctx.close?.();
+
+    // Normalise so the loudest bar is 1, rounding to keep the payload tiny.
+    const scale = max > 0 ? 1 / max : 0;
+    return peaks.map((p) => Math.round(p * scale * 100) / 100);
+  } catch (e) {
+    console.warn('[beatbox] Peak extraction failed:', e.message);
+    return null;
+  }
+}
+
 /** Load ffmpeg once, lazily. Its core is ~30 MB, so not on page load. */
 async function ensureLoaded(onProgress) {
   if (ffmpeg) return ffmpeg;

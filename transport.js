@@ -51,6 +51,91 @@
     bottomPanel.appendChild(bar);
   });
 
+  // ── Waveform (SVG bars) ─────────────────────────────────────────────────────
+  //
+  // Drawn in the same SVG language as the rest of the deck, in the space
+  // between the volume line and the transport buttons. The played portion
+  // is filled; the rest is faint. Clicking seeks. Peaks come from the beat
+  // (precomputed at upload); with none, a flat baseline is shown.
+
+  const WF = {
+    x0: 34, x1: 64,          // horizontal span in viewBox units
+    yMid: 76.2,              // vertical centre
+    maxH: 2.4,               // half-height of the tallest bar
+    bars: 120,
+    barW: 0.16,
+  };
+
+  const waveGroup = document.createElementNS(NS, 'g');
+  waveGroup.setAttribute('class', 'waveform');
+  // Append (not insert first): SVG paints in document order, so the group
+  // must come AFTER the bottom-panel fill polygon or the white fill hides it.
+  bottomPanel.appendChild(waveGroup);
+
+  let waveBars = [];
+  let currentPeaks = null;
+
+  function renderWaveform(peaks) {
+    currentPeaks = (peaks && peaks.length) ? peaks : null;
+    waveGroup.innerHTML = '';
+    waveBars = [];
+
+    const n = WF.bars;
+    const step = (WF.x1 - WF.x0) / n;
+
+    for (let i = 0; i < n; i++) {
+      // Map bar index to a peak (peaks may be a different length).
+      let amp = 0.12; // flat baseline when there is no peak data
+      if (currentPeaks) {
+        const idx = Math.floor((i / n) * currentPeaks.length);
+        amp = Math.max(0.06, currentPeaks[idx] || 0);
+      }
+      const h = amp * WF.maxH;
+      const x = WF.x0 + i * step;
+
+      const bar = document.createElementNS(NS, 'rect');
+      bar.setAttribute('x', x.toFixed(3));
+      bar.setAttribute('y', (WF.yMid - h).toFixed(3));
+      bar.setAttribute('width', WF.barW);
+      bar.setAttribute('height', (h * 2).toFixed(3));
+      bar.setAttribute('class', 'wave-bar');
+      bar.setAttribute('pointer-events', 'none');
+      waveGroup.appendChild(bar);
+      waveBars.push(bar);
+    }
+    paintProgress(0);
+  }
+
+  // Fill bars up to the current position; leave the rest faint.
+  function paintProgress(fraction) {
+    const cut = Math.floor(fraction * waveBars.length);
+    waveBars.forEach((bar, i) => {
+      bar.classList.toggle('is-played', i <= cut);
+    });
+  }
+
+  // Click / drag anywhere on the waveform seeks.
+  function seekFromEvent(e) {
+    if (!audio.duration || !isFinite(audio.duration)) return;
+    const pt = toSVGPoint(e);
+    const f = (pt.x - WF.x0) / (WF.x1 - WF.x0);
+    audio.currentTime = Math.min(1, Math.max(0, f)) * audio.duration;
+  }
+
+  // A transparent hit strip over the waveform captures the clicks (the bars
+  // themselves are pointer-events:none so thin gaps don't swallow clicks).
+  const waveHit = document.createElementNS(NS, 'rect');
+  waveHit.setAttribute('x', WF.x0);
+  waveHit.setAttribute('y', WF.yMid - WF.maxH);
+  waveHit.setAttribute('width', WF.x1 - WF.x0);
+  waveHit.setAttribute('height', WF.maxH * 2);
+  waveHit.setAttribute('fill', 'transparent');
+  waveHit.style.cursor = 'pointer';
+  waveHit.addEventListener('click', seekFromEvent);
+  bottomPanel.appendChild(waveHit);
+
+  renderWaveform(null);
+
   // ── Inject time text into the time rect ─────────────────────────────────────
 
   const timeText = document.createElementNS(NS, 'text');
@@ -108,6 +193,9 @@
 
     audio.src = url;
     audio.load();
+
+    // Draw this track's waveform (or a flat baseline if it has no peaks).
+    renderWaveform(track.peaks);
   }
 
   // ── Playback actions ─────────────────────────────────────────────────────────
@@ -177,6 +265,7 @@
 
   audio.addEventListener('timeupdate', () => {
     timeText.textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
+    if (audio.duration) paintProgress(audio.currentTime / audio.duration);
   });
 
   audio.addEventListener('ended', () => skip(+1));
