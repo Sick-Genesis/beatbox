@@ -35,13 +35,16 @@
 
   // ── Inject pause bars (hidden until playing) ────────────────────────────────
 
+  // Two bars centred on the play circle (cx=49, cy=80.5), sized to sit
+  // inside it with the same visual weight as the play triangle rather than
+  // overspilling the circle. Bars 1.1 wide with a 0.7 gap → span 47.65–50.35.
   const pauseBar1 = document.createElementNS(NS, 'rect');
   const pauseBar2 = document.createElementNS(NS, 'rect');
-  [[pauseBar1, 47.2], [pauseBar2, 50.3]].forEach(([bar, x]) => {
+  [[pauseBar1, 47.65], [pauseBar2, 49.25]].forEach(([bar, x]) => {
     bar.setAttribute('x',      x);
-    bar.setAttribute('y',      '78.5');
-    bar.setAttribute('width',  '1.8');
-    bar.setAttribute('height', '4');
+    bar.setAttribute('y',      '78.7');
+    bar.setAttribute('width',  '1.1');
+    bar.setAttribute('height', '3.6');
     bar.setAttribute('fill',   'black');
     bar.setAttribute('pointer-events', 'none');
     bar.style.display = 'none';

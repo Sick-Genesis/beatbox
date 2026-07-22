@@ -45,42 +45,52 @@ document.addEventListener('DOMContentLoaded', function () {
   let placed = false;           // has the box been positioned absolutely yet
 
   function beginPlacement() {
+    // Capture the box's current on-screen position, then lift it OUT of the
+    // scroll/overflow container into fixed, viewport-relative positioning.
+    // Fixed coords match clientX/clientY exactly, so the drag tracks the
+    // pointer 1:1 instead of fighting the container's coordinate space —
+    // that mismatch was the "acting weird" jank.
     const rect = box.getBoundingClientRect();
-    // Break out of the centring flex layout into free positioning.
     container.style.alignItems = 'flex-start';
     container.style.justifyContent = 'flex-start';
-    box.style.position = 'absolute';
+    box.style.position = 'fixed';
     box.style.left = `${rect.left}px`;
     box.style.top = `${rect.top}px`;
+    box.style.width = `${rect.width}px`;
+    box.style.height = `${rect.height}px`;
     box.style.margin = '0';
+    box.style.zIndex = '10001';
     placed = true;
   }
 
   titlebar?.addEventListener('pointerdown', (e) => {
     // Don't start a drag from the close button.
     if (e.target.closest('.window-titlebar__close')) return;
+    e.preventDefault();
 
     if (!placed) beginPlacement();
     dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
+    // Offset of the pointer WITHIN the box, so the box moves relative to
+    // the grab point rather than snapping its corner to the cursor.
     const rect = box.getBoundingClientRect();
-    baseX = rect.left;
-    baseY = rect.top;
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
     titlebar.setPointerCapture(e.pointerId);
     titlebar.classList.add('is-dragging');
   });
 
   titlebar?.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
 
-    // Keep the title bar reachable — clamp to the viewport with a margin.
-    const maxX = window.innerWidth - 60;
-    const maxY = window.innerHeight - 40;
-    const nx = Math.min(Math.max(baseX + dx, -box.offsetWidth + 120), maxX);
-    const ny = Math.min(Math.max(baseY + dy, 0), maxY);
+    // New top-left = pointer minus the grab offset. Pure fixed coords.
+    let nx = e.clientX - startX;
+    let ny = e.clientY - startY;
+
+    // Keep the title bar on-screen: never let the window leave more than
+    // its width minus a reachable strip, and never go above the top.
+    const w = box.offsetWidth;
+    nx = Math.min(Math.max(nx, -(w - 120)), window.innerWidth - 60);
+    ny = Math.min(Math.max(ny, 0), window.innerHeight - 30);
 
     box.style.left = `${nx}px`;
     box.style.top = `${ny}px`;
