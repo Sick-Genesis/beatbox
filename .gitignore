@@ -1,6 +1,9 @@
 node_modules/
 dist/
 
+# ffmpeg.wasm core, copied from node_modules by scripts/copy-ffmpeg-core.mjs
+asset/ffmpeg/
+
 # Local env — contains your Supabase keys. Never commit.
 .env
 .env.local

@@ -10,12 +10,42 @@
 // placeholders simply stay — the app still runs.
 
 import {
-  fetchBeats, syncInto, createBeat, awaitPreview, getMasterDownloadUrl,
+  fetchBeats, syncInto, createBeat, getMasterDownloadUrl,
   claimFreeBeat, RIGHTS_WARRANTY_TEXT, FREE_TERMS_TEXT,
 } from './beats-repo.js';
 import { isConfigured } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
 import { getSession, becomeProducer } from './auth.js';
+import { tagBeat as runTagger, canTagInBrowser } from './tagger.js';
+
+// The platform tag lives in the public dir (asset/), so it is referenced by
+// its served path rather than imported — Vite copies asset/ verbatim.
+const platformTagUrl = '/sound/world princess.mp3';
+
+/**
+ * Produce a tagged preview in the browser.
+ *   mode 'platform' — lace in the beatbox tag
+ *   mode 'own_tag'  — lace in the producer's own tag
+ * The clean beat never leaves the browser during this — see src/tagger.js.
+ */
+async function tagBeat({ beatFile, mode, ownTag, onProgress }) {
+  if (!canTagInBrowser()) {
+    throw new Error(
+      'This browser cannot generate the preview. Try a desktop browser, '
+      + 'or choose "I\'ll upload my own tagged version".'
+    );
+  }
+
+  let tagFile = ownTag;
+  if (mode === 'platform') {
+    const res = await fetch(platformTagUrl);
+    const blob = await res.blob();
+    tagFile = new File([blob], 'platform-tag.mp3', { type: 'audio/mpeg' });
+  }
+
+  if (!tagFile) throw new Error('No tag was provided.');
+  return runTagger(beatFile, tagFile, onProgress);
+}
 
 // upload.js is a classic script and cannot import ES modules, so the
 // pieces it needs are published on window. Same bridge the rest of this
@@ -23,7 +53,7 @@ import { getSession, becomeProducer } from './auth.js';
 window.beatboxApi = {
   isConfigured,
   createBeat,
-  awaitPreview,
+  tagBeat,
   getMasterDownloadUrl,
   claimFreeBeat,
   getSession,

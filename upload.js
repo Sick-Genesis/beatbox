@@ -220,7 +220,26 @@
         await api.becomeProducer(api.RIGHTS_WARRANTY_TEXT);
       }
 
-      const beat = await api.createBeat({
+      const isFree = !!freeCheck?.checked;
+      const mode = previewMode?.value || 'platform';
+
+      // Make the tagged preview HERE, in the browser, before uploading —
+      // so the clean master never has to leave the machine to be tagged.
+      // Free beats need no preview; supplied ones already have theirs.
+      let previewFile = pendingPreview;
+      if (!isFree && mode !== 'supplied') {
+        setStatus('Adding the tag…');
+        previewFile = await api.tagBeat({
+          beatFile: pendingAudio,
+          mode,
+          ownTag: pendingTag,
+          onProgress: (pct) =>
+            setStatus(`Adding the tag… ${Math.round(pct * 100)}%`),
+        });
+      }
+
+      setStatus('Uploading…');
+      await api.createBeat({
         audioFile:   pendingAudio,
         artworkFile: pendingArtwork,
         title:       trackNameInput.value.trim(),
@@ -231,31 +250,15 @@
         rightsWarranted: true,
         containsSamples: !!samplesCheck?.checked,
         sampleNotes:     sampleNotes?.value || '',
-        previewMode:     previewMode?.value || 'platform',
-        tagFile:         pendingTag,
-        previewFile:     pendingPreview,
-        isFree:          !!freeCheck?.checked,
+        previewMode:     mode,
+        previewFile,
+        isFree,
       });
 
-      // A free beat is served clean and publishes immediately. A paid one
-      // stays draft until the preview is generated server-side.
-      if (freeCheck?.checked) {
-        setStatus('');
-        window.uploadToggle?.close?.();
-      } else {
-        setStatus('Preparing your preview…');
-        const state = await api.awaitPreview(beat.id);
-
-        if (state === 'processing') {
-          setStatus('Still processing — it will appear once it is ready.');
-        } else {
-          setStatus('');
-          window.uploadToggle?.close?.();
-        }
-      }
-
-      // Re-fetch so the new beat arrives with its server-side id and URLs
-      // rather than being faked into the array locally.
+      // Everything now publishes immediately — the preview is ready before
+      // insert. Re-fetch so the new beat arrives with its real id and URLs.
+      setStatus('');
+      window.uploadToggle?.close?.();
       await api.reloadBeats();
       resetForm();
     } catch (e) {

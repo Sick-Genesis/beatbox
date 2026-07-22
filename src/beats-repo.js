@@ -12,11 +12,7 @@ import { supabase, isConfigured } from './supabase-client.js';
 
 const AUDIO_BUCKET = 'beat-audio';       // private — clean masters
 const PREVIEW_BUCKET = 'beat-previews';  // public  — tagged previews
-const TAG_BUCKET = 'beat-tags';          // private — producer tags
 const ARTWORK_BUCKET = 'beat-artwork';
-
-/** Producer tags longer than this are rejected. Matches the Edge Function. */
-export const TAG_MAX_SECONDS = 3;
 
 /**
  * Turn a storage path into a playable URL.
@@ -157,7 +153,7 @@ export const RIGHTS_WARRANTY_TEXT =
  * preview is made depends on previewMode:
  *
  *   'platform' — beatbox laces in its own tag (default)
- *   'own_tag'  — producer supplies a short tag (<= TAG_MAX_SECONDS)
+ *   'own_tag'  — producer supplies a short tag (length checked in tagger.js)
  *   'supplied' — producer supplies a finished, already-tagged preview
  *
  * The beat is created as a DRAFT and only publishes once its preview
@@ -177,8 +173,7 @@ export async function createBeat({
   containsSamples = null,
   sampleNotes = '',
   previewMode = 'platform',
-  tagFile = null,
-  previewFile = null,
+  previewFile = null,   // the finished, browser-tagged preview (paid beats)
   isFree = false,
 }) {
   if (!isConfigured) throw new Error('Supabase is not configured.');
@@ -234,43 +229,22 @@ export async function createBeat({
     }
   }
 
-  // ── Preview inputs ──
+  // ── Preview ──
   //
-  // These are what the Edge Function works from. The preview itself is
-  // generated server-side, except in 'supplied' mode where the producer
-  // has already made one.
-
-  let tagPath = null;
-  if (!isFree && previewMode === 'own_tag') {
-    if (!tagFile) {
-      await cleanUp(uploaded);
-      throw new Error('Upload a tag, or let beatbox add one for you.');
-    }
-
-    const seconds = await audioDuration(tagFile);
-    if (seconds > TAG_MAX_SECONDS + 0.25) {   // small tolerance for encoding
-      await cleanUp(uploaded);
-      throw new Error(`Tags need to be ${TAG_MAX_SECONDS} seconds or shorter.`);
-    }
-
-    const tagExt = tagFile.name.split('.').pop().toLowerCase();
-    tagPath = `${user.id}/${stamp}-tag.${tagExt}`;
-    const tagUpload = await supabase.storage
-      .from(TAG_BUCKET)
-      .upload(tagPath, tagFile, { upsert: false });
-
-    if (tagUpload.error) {
-      await cleanUp(uploaded);
-      throw new Error(`Tag upload failed: ${tagUpload.error.message}`);
-    }
-    uploaded.push([TAG_BUCKET, tagPath]);
-  }
+  // For a paid beat the tagged preview is made in the BROWSER before this
+  // runs (see src/tagger.js) and arrives here as previewFile — whether the
+  // producer picked the platform tag, their own tag, or supplied a
+  // finished preview. So there is a single path: upload the finished
+  // preview to the public bucket. No server processing, no tag bucket.
+  //
+  // Free beats have no preview file; the clean public upload is served
+  // directly.
 
   let previewPath = null;
-  if (!isFree && previewMode === 'supplied') {
+  if (!isFree) {
     if (!previewFile) {
       await cleanUp(uploaded);
-      throw new Error('Upload your tagged preview, or let beatbox make one.');
+      throw new Error('The preview could not be prepared. Try again, or upload your own tagged preview.');
     }
 
     const pvExt = previewFile.name.split('.').pop().toLowerCase();
@@ -306,15 +280,14 @@ export async function createBeat({
       contains_samples: containsSamples,
       sample_notes: sampleNotes?.trim() || null,
 
-      // Free beats need no processing: the clean file is the preview, so
-      // they publish immediately. Paid beats stay draft until the Edge
-      // Function produces a tagged preview — the beats_require_preview
-      // trigger refuses to publish without one.
-      status: isFree ? 'published' : 'draft',
+      // The preview already exists — tagged in the browser for paid beats,
+      // or the clean file itself for free ones — so beats publish
+      // immediately. The beats_require_preview trigger still guards this:
+      // it refuses to publish without a ready preview.
+      status: 'published',
       preview_mode: isFree ? 'supplied' : previewMode,
       preview_path: isFree ? audioPath : previewPath,
-      preview_state: isFree ? 'ready' : 'pending',
-      tag_path: tagPath,
+      preview_state: 'ready',
 
       is_free: isFree,
       free_terms: isFree ? FREE_TERMS_TEXT : null,
@@ -343,50 +316,8 @@ export async function createBeat({
     }
   }
 
-  // Free beats are already live — nothing to tag.
-  if (!isFree) {
-    // Deliberately not awaited beyond dispatch: the beat is safely a draft
-    // either way, and making the producer wait on ffmpeg would block the
-    // form for no benefit.
-    const { error: fnError } = await supabase.functions.invoke('generate-preview', {
-      body: { beatId: beat.id },
-    });
-
-    if (fnError) {
-      console.warn('[beatbox] Preview generation could not start:', fnError.message);
-    }
-  }
-
+  // No server-side processing: the preview is already made and uploaded.
   return toBeatBankEntry({ ...beat, license_tiers: [] });
-}
-
-/**
- * Poll until a beat's preview finishes processing.
- *
- * Returns the final state. Callers use this to tell a producer when their
- * upload has gone live, since publication happens server-side.
- */
-export async function awaitPreview(beatId, { timeoutMs = 120000 } = {}) {
-  if (!isConfigured) return 'ready';
-
-  const started = Date.now();
-
-  while (Date.now() - started < timeoutMs) {
-    const { data } = await supabase
-      .from('beats')
-      .select('preview_state, preview_error')
-      .eq('id', beatId)
-      .single();
-
-    if (data?.preview_state === 'ready') return 'ready';
-    if (data?.preview_state === 'failed') {
-      throw new Error(data.preview_error || 'Preview could not be generated.');
-    }
-
-    await new Promise((r) => setTimeout(r, 2000));
-  }
-
-  return 'processing';   // still going; not an error, just slow
 }
 
 /**
@@ -434,25 +365,6 @@ async function cleanUp(uploaded) {
       // Best effort — the original error matters more than this one.
     }
   }
-}
-
-/** Read a file's duration by loading it into an <audio> element. */
-function audioDuration(file) {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const audio = new Audio();
-    audio.preload = 'metadata';
-
-    const done = (value) => {
-      URL.revokeObjectURL(url);
-      resolve(value);
-    };
-
-    audio.onloadedmetadata = () => done(audio.duration || 0);
-    // Unreadable metadata shouldn't block an upload — let the server decide.
-    audio.onerror = () => done(0);
-    audio.src = url;
-  });
 }
 
 /** Current session user, or null. */

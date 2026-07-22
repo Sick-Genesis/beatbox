@@ -23,17 +23,26 @@ const CLASSIC_SCRIPTS = [
 ];
 
 function copyClassicScripts() {
+  // Capture the resolved project root and out dir from Vite itself, rather
+  // than guessing from __dirname/import.meta — Vite may load this config
+  // from a temp directory, which would otherwise point us at the wrong place.
+  let root;
+  let outDir;
   return {
     name: 'copy-classic-scripts',
     apply: 'build',
+    configResolved(config) {
+      root = config.root;
+      outDir = resolve(config.root, config.build.outDir);
+    },
     closeBundle() {
       for (const file of CLASSIC_SCRIPTS) {
-        const from = resolve(__dirname, file);
+        const from = resolve(root, file);
         if (!existsSync(from)) {
           this.warn(`classic script missing, not copied: ${file}`);
           continue;
         }
-        copyFileSync(from, resolve(__dirname, 'dist', file));
+        copyFileSync(from, resolve(outDir, file));
       }
     },
   };
@@ -46,6 +55,23 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    // ffmpeg.wasm needs SharedArrayBuffer, which browsers only expose in a
+    // cross-origin-isolated context. These two headers establish that.
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
+  preview: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
+  // @ffmpeg/ffmpeg ships its worker as a separate chunk; excluding it from
+  // dep pre-bundling keeps that worker resolvable at runtime.
+  optimizeDeps: {
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
   },
   build: {
     outDir: 'dist',
