@@ -183,4 +183,21 @@
   // buttons (e.g. clicking a carousel item), reset the icon state.
   audio.addEventListener('emptied', showPlayIcon);
 
+  // ── Public API ────────────────────────────────────────────────────────────
+  // Lets other views (the list) drive playback without re-implementing the
+  // audio wiring or faking SVG clicks.
+
+  window.beatTransport = {
+    // Load whatever the carousel currently points at and start playing.
+    // The list calls beatCarousel.goTo(i) first, so currentTrack() is right.
+    play() {
+      loadTrack(currentTrack());
+      audio.play().catch(() => {});
+      showPauseIcon();
+    },
+    toggle: togglePlay,
+    pause() { audio.pause(); showPlayIcon(); },
+    get playing() { return !audio.paused; },
+  };
+
 })();

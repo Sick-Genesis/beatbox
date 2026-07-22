@@ -179,9 +179,11 @@ async function renderBar(session) {
   const state = session ?? await getSession();
 
   if (state) {
+    // Role is not shown here — it reads as a label the user didn't choose,
+    // and "buyer" just means "hasn't uploaded yet". It belongs in profile
+    // settings, not the header.
     bar.innerHTML = `
       <span class="auth-bar__who">@${state.handle || state.displayName}</span>
-      <span class="auth-bar__role">${state.role}</span>
       <button class="auth-btn" id="ab-signout" type="button">sign out</button>`;
     bar.querySelector('#ab-signout').addEventListener('click', async () => {
       await signOut();

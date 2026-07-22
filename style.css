@@ -80,9 +80,16 @@
   color: #888;
 }
 
-[data-theme="dark"] .tracklist tbody tr:nth-child(odd)  { background: #111; }
-[data-theme="dark"] .tracklist tbody tr:nth-child(even) { background: #0e0e0e; }
-[data-theme="dark"] .tracklist tbody tr:hover { background: #1a1a1a; }
+[data-theme="dark"] .tracklist tbody tr.track-row:nth-of-type(odd)  { background: #111; }
+[data-theme="dark"] .tracklist tbody tr.track-row:nth-of-type(even) { background: #0e0e0e; }
+[data-theme="dark"] .tracklist tbody tr.track-row:hover { background: #1a1a1a; }
+[data-theme="dark"] .tracklist tbody tr.track-row.is-playing { background: #232312; }
+[data-theme="dark"] .tracklist .row-play:hover,
+[data-theme="dark"] .tracklist .row-info:hover { color: var(--accent); }
+[data-theme="dark"] .tracklist tr.is-playing .row-play { color: var(--accent); }
+[data-theme="dark"] .tracklist .bookmark.starred { color: var(--accent); }
+[data-theme="dark"] .tracklist tr.detail-row td { background: #141414; border-bottom-color: #2a2a2a; }
+[data-theme="dark"] .track-detail { color: #bbb; }
 
 [data-theme="dark"] .carousel-item__title { color: #e0e0e0; }
 [data-theme="dark"] .carousel-item__artwork {
@@ -524,20 +531,70 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   color: #333;
   white-space: nowrap;
 }
-.tracklist tbody tr:nth-child(odd)  { background: #f5f5f5; }
-.tracklist tbody tr:nth-child(even) { background: #ffffff; }
-.tracklist tbody tr:hover { background: #dce8f7; }
-.tracklist tbody tr.playing { background: inherit; }
+/* Stripe only the track rows, so expanded detail rows don't break the
+   pattern. :nth-child would count detail rows too. */
+.tracklist tbody tr.track-row:nth-of-type(odd)  { background: #f5f5f5; }
+.tracklist tbody tr.track-row:nth-of-type(even) { background: #ffffff; }
+.tracklist tbody tr.track-row:hover { background: #dce8f7; }
+.tracklist tbody tr.track-row.is-playing { background: #cfe0f5; }
 .tracklist td {
-  padding: 2px 8px;
+  padding: 3px 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 180px;
 }
-.tracklist td.num { color: #888; text-align: right; width: 24px; max-width: 24px; }
-.tracklist td.bookmark { text-align: center; width: 24px; cursor: pointer; color: #aaa; }
-.tracklist td.bookmark.starred { color: hotpink; }
+
+/* Column widths and alignment */
+.tracklist .col-play  { width: 26px; text-align: center; }
+.tracklist .col-price { width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+.tracklist .col-time  { width: 48px; text-align: right; font-variant-numeric: tabular-nums; color: #777; }
+.tracklist .col-info  { width: 26px; text-align: center; }
+.tracklist .col-star  { width: 26px; text-align: center; }
+
+/* ▶ and ⓘ row buttons — quiet until hovered */
+.tracklist .row-play,
+.tracklist .row-info,
+.tracklist .bookmark {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  color: #999;
+}
+.tracklist .row-play { font-size: 10px; }
+.tracklist .row-play:hover,
+.tracklist .row-info:hover { color: #111; }
+.tracklist tr.is-playing .row-play { color: hotpink; }
+.tracklist .bookmark { color: #bbb; }
+.tracklist .bookmark.starred { color: hotpink; }
+
+/* Expanded detail row */
+.tracklist tr.detail-row td {
+  max-width: none;
+  white-space: normal;
+  background: #eef2f7;
+  padding: 6px 12px 8px 34px;
+  border-bottom: 1px solid #d5dde8;
+}
+.track-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 11px;
+  color: #444;
+}
+.track-detail b {
+  font-weight: 600;
+  color: #777;
+  margin-right: 4px;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+.track-detail .detail-empty { color: #999; font-style: italic; }
 .transport {
   position: fixed;
   left: 32%;

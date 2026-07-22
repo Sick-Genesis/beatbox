@@ -45,16 +45,6 @@
   letter-spacing: 0.01em;
 }
 
-.auth-bar__role {
-  padding: 2px 7px;
-  font-size: 10px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
-
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 
 .auth-btn {

@@ -16,6 +16,7 @@ const CLASSIC_SCRIPTS = [
   'theme-toggle.js',
   'beat-data.js',
   'carousel.js',
+  'list-view.js',
   'view-toggle.js',
   'upload-toggle.js',
   'upload.js',
@@ -59,13 +60,13 @@ export default defineConfig({
     // cross-origin-isolated context. These two headers establish that.
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
   preview: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
   // @ffmpeg/ffmpeg ships its worker as a separate chunk; excluding it from
