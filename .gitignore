@@ -8,3 +8,7 @@ asset/ffmpeg/
 .env
 .env.local
 .env.*.local
+
+# scratch test scripts
+_*.mjs
+_*.png
