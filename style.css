@@ -627,6 +627,35 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   letter-spacing: 0.06em;
 }
 .track-detail .detail-empty { color: #999; font-style: italic; }
+
+/* Buy / get / download actions in the expanded detail */
+.track-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.track-action {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.track-action:hover { background: #333; }
+.track-action--get { background: #1a7d3a; border-color: #1a7d3a; }
+.track-action--get:hover { background: #14612d; }
+.track-action:disabled { opacity: 0.55; cursor: default; }
+.action-note { font-size: 10px; color: #999; }
+.action-flash { font-size: 10px; color: hotpink; }
+
+[data-theme="dark"] .track-action { background: var(--accent); border-color: var(--accent); color: #0e0e0e; }
+[data-theme="dark"] .track-action:hover { background: #a6d400; }
+[data-theme="dark"] .track-action--get { background: #2ea44f; border-color: #2ea44f; color: #fff; }
+[data-theme="dark"] .action-note { color: #777; }
 .transport {
   position: fixed;
   left: 32%;

@@ -50,6 +50,11 @@ function toBeatBankEntry(row) {
     isFree: row.is_free ?? false,
     freeTerms: row.free_terms ?? null,
 
+    // Where to buy this beat. null → not for sale yet; the UI falls back
+    // to messaging the producer. Money goes to the producer's Gumroad,
+    // never through beatbox.
+    buyUrl: row.buy_url ?? null,
+
     // Waveform amplitudes for the transport display, or null → flat bar.
     peaks: Array.isArray(row.peaks) ? row.peaks : null,
 
@@ -89,7 +94,7 @@ export async function fetchBeats({ limit = 100 } = {}) {
     .select(`
       id, producer_id, rights_holder_id, title, artist, artwork_path,
       preview_path, preview_state, preview_mode,
-      is_free, free_terms, peaks,
+      is_free, free_terms, peaks, buy_url,
       bpm, musical_key, tags, duration_sec, status, created_at,
       withdrawn_at, contains_samples,
       license_tiers ( id, kind, price_cents, currency, deliverable, terms )

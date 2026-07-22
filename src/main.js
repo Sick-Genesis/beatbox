@@ -15,8 +15,11 @@ import {
 } from './beats-repo.js';
 import { isConfigured } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
-import { getSession, becomeProducer } from './auth.js';
+import { getSession, becomeProducer, onAuthChange } from './auth.js';
 import { tagBeat as runTagger, canTagInBrowser, extractPeaks } from './tagger.js';
+import {
+  buildBuyUrl, claimPendingOrders, listPurchases, ownsBeat,
+} from './purchases-repo.js';
 
 // The platform tag lives in the public dir (asset/), so it is referenced by
 // its served path rather than imported — Vite copies asset/ verbatim.
@@ -59,10 +62,25 @@ window.beatboxApi = {
   claimFreeBeat,
   getSession,
   becomeProducer,
+  buildBuyUrl,
+  listPurchases,
+  ownsBeat,
   reloadBeats: loadBeats,
   RIGHTS_WARRANTY_TEXT,
   FREE_TERMS_TEXT,
 };
+
+// When someone signs in, attach any purchases that were waiting on their
+// email (bought while signed out, or with a different email), then refresh
+// so newly-unlocked beats reflect it.
+onAuthChange(async (session) => {
+  if (!session) return;
+  const claimed = await claimPendingOrders();
+  if (claimed > 0) {
+    console.info(`[beatbox] Attached ${claimed} earlier purchase(s).`);
+    loadBeats();
+  }
+});
 
 // True once real data has replaced the placeholders. Needed because an
 // empty fetch is ambiguous: on first load it means "new project, keep the

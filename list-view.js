@@ -87,9 +87,98 @@
     }
     if (!bits.length) bits.push('<span class="detail-empty">No extra details yet.</span>');
 
-    cell.innerHTML = `<div class="track-detail">${bits.join('')}</div>`;
+    cell.innerHTML = `
+      <div class="track-detail">${bits.join('')}</div>
+      <div class="track-actions" data-actions></div>`;
     detail.appendChild(cell);
     row.after(detail);
+
+    renderActions(cell.querySelector('[data-actions]'), item);
+  }
+
+  // The buy / get / message / download control, in whichever state applies.
+  async function renderActions(host, item) {
+    if (!host) return;
+    const api = window.beatboxApi;
+
+    // Already owned? Offer the clean-file download. An ownership-check
+    // failure must not swallow the whole control — fall through to the
+    // buy/get state so the beat is never left with no action.
+    let owned = false;
+    try { owned = api?.ownsBeat ? await api.ownsBeat(item.id) : false; }
+    catch { owned = false; }
+
+    if (owned) {
+      const btn = actionButton('Download', 'get');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true; btn.textContent = 'Preparing…';
+        try {
+          const url = await api.getMasterDownloadUrl(item.id);
+          window.location.href = url;   // signed, short-lived
+        } catch (e) {
+          btn.disabled = false; btn.textContent = 'Download';
+          flash(host, e.message);
+        }
+      });
+      host.appendChild(btn);
+      return;
+    }
+
+    if (item.isFree) {
+      const btn = actionButton('Get free', 'get');
+      btn.addEventListener('click', async () => {
+        if (!api?.claimFreeBeat) return;
+        btn.disabled = true; btn.textContent = 'Adding…';
+        try {
+          await api.claimFreeBeat(item.id);
+          btn.textContent = 'Yours ✓';
+        } catch (e) {
+          btn.disabled = false; btn.textContent = 'Get free';
+          flash(host, e.message);
+        }
+      });
+      host.appendChild(btn);
+      return;
+    }
+
+    if (item.buyUrl) {
+      // Money goes to the producer's Gumroad; we just build the link.
+      const btn = actionButton('Buy', 'buy');
+      btn.addEventListener('click', async () => {
+        const url = await api.buildBuyUrl(item);
+        if (url) window.open(url, '_blank', 'noopener');
+      });
+      host.appendChild(btn);
+      const note = document.createElement('span');
+      note.className = 'action-note';
+      note.textContent = 'Opens the producer’s checkout — unlocks here after payment.';
+      host.appendChild(note);
+      return;
+    }
+
+    // No buy link yet → fall back to contacting the producer (the report's
+    // correspondence path). Messaging isn't built, so this is a stub that
+    // makes the beat actionable rather than a dead end.
+    const btn = actionButton('Message producer', 'buy');
+    btn.addEventListener('click', () => flash(host, 'Messaging is coming soon — this beat isn’t for sale yet.'));
+    host.appendChild(btn);
+  }
+
+  function actionButton(label, kind) {
+    const b = document.createElement('button');
+    b.className = `track-action track-action--${kind}`;
+    b.textContent = label;
+    return b;
+  }
+
+  function flash(host, msg) {
+    let n = host.querySelector('.action-flash');
+    if (!n) {
+      n = document.createElement('span');
+      n.className = 'action-flash';
+      host.appendChild(n);
+    }
+    n.textContent = msg;
   }
 
   function buildRow(item, index) {
