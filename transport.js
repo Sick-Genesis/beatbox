@@ -60,8 +60,9 @@
 
   const WF = {
     x0: 34, x1: 64,          // horizontal span in viewBox units
-    yMid: 76.2,              // vertical centre
-    maxH: 2.4,               // half-height of the tallest bar
+    yMid: 74,                // vertical centre — between the volume line
+                             // (y=71) and the buttons (top ~76)
+    maxH: 1.9,               // half-height of the tallest bar
     bars: 120,
     barW: 0.16,
   };
@@ -206,11 +207,11 @@
         loadTrack(currentTrack());
       }
       audio.play().catch(() => {});
-      showPauseIcon();
     } else {
       audio.pause();
-      showPlayIcon();
     }
+    // Icon follows the 'play'/'pause' events, so no manual switch here —
+    // avoids the fresh-track load race that flipped it back.
   }
 
   function skip(dir) {
@@ -221,7 +222,7 @@
     loadTrack(currentTrack());
     if (wasPlaying) {
       audio.play().catch(() => {});
-      showPauseIcon();
+      // Icon follows the play/pause events.
     }
   }
 
@@ -269,11 +270,15 @@
   });
 
   audio.addEventListener('ended', () => skip(+1));
-  audio.addEventListener('pause', showPlayIcon);
 
-  // When a new track is loaded from the carousel without using transport
-  // buttons (e.g. clicking a carousel item), reset the icon state.
-  audio.addEventListener('emptied', showPlayIcon);
+  // Drive the icon off the audio's own state, not the caller. This fixes a
+  // race: play() calls loadTrack() → audio.load() → an async 'emptied'
+  // event that fired AFTER play()'s showPauseIcon(), flipping it back to
+  // the play icon on the first click of a fresh track. Listening to the
+  // real playback events makes the icon authoritative regardless of order.
+  audio.addEventListener('play',    showPauseIcon);
+  audio.addEventListener('playing', showPauseIcon);
+  audio.addEventListener('pause',   showPlayIcon);
 
   // ── Public API ────────────────────────────────────────────────────────────
   // Lets other views (the list) drive playback without re-implementing the
@@ -284,11 +289,12 @@
     // The list calls beatCarousel.goTo(i) first, so currentTrack() is right.
     play() {
       loadTrack(currentTrack());
+      // Icon switches via the 'play'/'playing' listeners, so it only shows
+      // pause once playback actually begins — not if play() is rejected.
       audio.play().catch(() => {});
-      showPauseIcon();
     },
     toggle: togglePlay,
-    pause() { audio.pause(); showPlayIcon(); },
+    pause() { audio.pause(); },
     get playing() { return !audio.paused; },
   };
 

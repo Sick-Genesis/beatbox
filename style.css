@@ -108,6 +108,29 @@
 [data-theme="dark"] .upload-form__check { color: #888; }
 [data-theme="dark"] .upload-form__check:hover { color: #c0c0c0; }
 [data-theme="dark"] .upload-form__status { color: #777; }
+/* Pointer cursor on every interactive control.
+   The transport buttons are hit-tested by coordinate math in transport.js,
+   so their shapes (circle + the sibling arrow polygon/line) all need the
+   cursor. The sidebar star/envelope and the .btn groups too. */
+svg.layout .play-pause,
+svg.layout .prev,
+svg.layout .next,
+svg.layout .side-nav__star,
+svg.layout .btn,
+svg.layout .btn * {
+  cursor: pointer;
+}
+/* The transport arrow/triangle graphics are siblings of the circles; give
+   the whole play/prev/next groups a pointer via their parent <g>. */
+svg.layout .bottom-panel g:has(.play-pause),
+svg.layout .bottom-panel g:has(.prev),
+svg.layout .bottom-panel g:has(.next),
+svg.layout .bottom-panel g:has(.play-pause) *,
+svg.layout .bottom-panel g:has(.prev) *,
+svg.layout .bottom-panel g:has(.next) * {
+  cursor: pointer;
+}
+
 /* Waveform bars in the transport deck */
 .wave-bar { fill: #cfcfcf; }
 .wave-bar.is-played { fill: #111; }
