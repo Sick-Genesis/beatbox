@@ -1,0 +1,251 @@
+/* demo.css
+ *
+ * Chrome for the demo build only (loaded from demo-boot.js). Matches
+ * beatbox's language — hairline borders, monochrome, the acid-green --accent
+ * in dark mode — reusing the CSS variables auth.css already defines
+ * (--text, --muted, --accent).
+ */
+
+:root {
+  --demo-border: rgba(0, 0, 0, 0.75);
+}
+[data-theme="dark"] {
+  --demo-border: rgba(255, 255, 255, 0.5);
+}
+
+/* ── DEMO badge ─────────────────────────────────────────────────────────── */
+
+.demo-badge {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  font: 600 11px/1 -apple-system, "Helvetica Neue", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text, #111);
+  background: var(--bg, #fff);
+  border: 1px solid var(--demo-border);
+  border-radius: 999px;
+}
+.demo-badge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d33;
+  animation: demo-pulse 1.8s ease-in-out infinite;
+}
+[data-theme="dark"] .demo-badge__dot { background: var(--accent, #c8ff00); }
+@keyframes demo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ── Sidebar hit-areas + count badge ────────────────────────────────────── */
+
+.demo-hit {
+  position: fixed;
+  z-index: 900;
+  width: 34px;
+  height: 34px;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+.demo-hit:hover { background: rgba(127, 127, 127, 0.15); }
+.demo-hit:focus-visible { outline: 2px solid var(--accent, #c8ff00); }
+
+.demo-count {
+  position: fixed;
+  z-index: 950;
+  transform: translate(-50%, -50%);
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  font: 700 10px/15px -apple-system, sans-serif;
+  text-align: center;
+  color: #fff;
+  background: #d33;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+/* ── Overlays / modals (checkout, library, offers) ──────────────────────── */
+
+.demo-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.demo-modal {
+  width: min(520px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--bg, #fff);
+  color: var(--text, #111);
+  border: 1px solid var(--demo-border);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+.demo-modal__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  font: 600 11px/1 -apple-system, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted, #666);
+  border-bottom: 1px solid var(--demo-border);
+}
+.demo-modal__x {
+  border: 0;
+  background: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted, #666);
+}
+.demo-modal__body { padding: 16px 18px 20px; }
+.demo-modal__lead { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: var(--muted, #555); }
+.demo-modal__title { margin: 0 0 12px; font-size: 20px; }
+.demo-modal__foot { margin: 12px 0 0; font-size: 11px; color: var(--muted, #888); }
+
+/* ── Checkout tiers ─────────────────────────────────────────────────────── */
+
+.demo-tiers { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.demo-tier {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "radio kind price" "radio terms terms";
+  gap: 2px 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.demo-tier:hover { background: rgba(127, 127, 127, 0.08); }
+.demo-tier input { grid-area: radio; }
+.demo-tier__kind { grid-area: kind; font-weight: 600; text-transform: capitalize; }
+.demo-tier__price { grid-area: price; font-weight: 600; }
+.demo-tier__terms { grid-area: terms; font-size: 11px; color: var(--muted, #777); }
+
+.demo-buy, .demo-intro__go {
+  width: 100%;
+  padding: 11px;
+  font: 600 13px/1 -apple-system, sans-serif;
+  color: #0e0e0e;
+  background: var(--accent, #c8ff00);
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.demo-buy:hover, .demo-intro__go:hover { filter: brightness(1.05); }
+
+/* ── Library ────────────────────────────────────────────────────────────── */
+
+.demo-lib { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.demo-lib__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.demo-lib__title { font-weight: 600; }
+.demo-lib__artist { color: var(--muted, #777); }
+.demo-lib__kind { text-transform: capitalize; color: var(--muted, #777); font-size: 12px; }
+.demo-lib__dl {
+  padding: 5px 10px;
+  font-size: 12px;
+  border: 1px solid var(--demo-border);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.demo-lib__empty { color: var(--muted, #777); font-size: 13px; }
+
+/* ── Offers ─────────────────────────────────────────────────────────────── */
+
+.demo-offer { border: 1px solid var(--demo-border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.demo-offer__swap { display: flex; align-items: center; gap: 12px; }
+.demo-offer__side { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.demo-offer__side b { font-size: 15px; }
+.demo-offer__side span { color: var(--muted, #777); font-size: 12px; }
+.demo-offer__label { text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px !important; }
+.demo-offer__arrow { font-size: 20px; color: var(--muted, #999); }
+.demo-offer__msg { margin: 12px 0; font-size: 13px; font-style: italic; color: var(--muted, #666); }
+.demo-offer__actions { display: flex; gap: 8px; }
+.demo-offer__accept, .demo-offer__decline {
+  flex: 1;
+  padding: 9px;
+  font: 600 12px/1 -apple-system, sans-serif;
+  border: 1px solid var(--demo-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.demo-offer__accept { color: #0e0e0e; background: var(--accent, #c8ff00); }
+.demo-offer__decline { background: none; color: inherit; }
+
+/* ── Intro notice ───────────────────────────────────────────────────────── */
+
+.demo-intro {
+  position: fixed;
+  right: 16px;
+  bottom: 56px;
+  z-index: 1250;
+  width: min(340px, calc(100vw - 32px));
+  padding: 18px 18px 16px;
+  background: var(--bg, #fff);
+  color: var(--text, #111);
+  border: 1px solid var(--demo-border);
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+}
+.demo-intro h2 { margin: 0 0 8px; font-size: 17px; }
+.demo-intro p { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--muted, #555); }
+.demo-intro__note { font-size: 12px !important; color: var(--muted, #888) !important; }
+.demo-intro__x {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--muted, #888);
+}
+.demo-intro__go { margin-top: 4px; }
+
+/* ── Demo toast (store-driven notices) ──────────────────────────────────── */
+
+.demo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1400;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 11px 16px;
+  font: 500 13px/1.4 -apple-system, sans-serif;
+  text-align: center;
+  color: var(--text, #111);
+  background: var(--bg, #fff);
+  border: 1px solid var(--demo-border);
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}

@@ -8,7 +8,9 @@
     "predev": "node scripts/copy-ffmpeg-core.mjs",
     "prebuild": "node scripts/copy-ffmpeg-core.mjs",
     "dev": "vite",
+    "dev:demo": "vite --mode demo",
     "build": "vite build",
+    "build:demo": "vite build --mode demo",
     "preview": "vite preview"
   },
   "devDependencies": {

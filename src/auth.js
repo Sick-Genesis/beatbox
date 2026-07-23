@@ -225,8 +225,9 @@ function friendlyError(message) {
 }
 
 // Keep listeners in sync when a token refreshes or a session is restored
-// in another tab.
-if (isConfigured) {
+// in another tab. Guard on the client itself, not just isConfigured: in demo
+// mode isConfigured is true but there is no real client (supabase is null).
+if (supabase) {
   supabase.auth.onAuthStateChange(async (event) => {
     if (event === 'SIGNED_OUT') {
       cachedProfile = null;

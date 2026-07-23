@@ -13,13 +13,26 @@ import {
   fetchBeats, syncInto, createBeat, getMasterDownloadUrl,
   claimFreeBeat, RIGHTS_WARRANTY_TEXT, FREE_TERMS_TEXT,
 } from './beats-repo.js';
-import { isConfigured } from './supabase-client.js';
+import { isConfigured, isDemo } from './supabase-client.js';
 import { initAuthUI } from './auth-ui.js';
 import { getSession, becomeProducer, onAuthChange } from './auth.js';
 import { tagBeat as runTagger, canTagInBrowser, extractPeaks } from './tagger.js';
 import {
   buildBuyUrl, claimPendingOrders, listPurchases, ownsBeat,
 } from './purchases-repo.js';
+
+// In demo mode the whole backend is replaced by an in-memory store and the
+// app boots into a separate path (see initDemo below). Everything after this
+// import runs only in the real, backend-connected build.
+import { initDemo } from './demo/demo-boot.js';
+
+if (isDemo) {
+  initDemo();
+} else {
+  initReal();
+}
+
+function initReal() {
 
 // The platform tag lives in the public dir (asset/), so it is referenced by
 // its served path rather than imported — Vite copies asset/ verbatim.
@@ -118,3 +131,5 @@ async function loadBeats() {
 
 initAuthUI();
 loadBeats();
+
+} // end initReal
