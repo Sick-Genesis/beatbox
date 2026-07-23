@@ -60,7 +60,7 @@
    above (dark mode flips it to #e0e0e0). */
 svg.layout .logo-word {
   font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 800;
+  font-weight: 300;
   font-size: 4.4px;
   letter-spacing: -0.15px;
   fill: #111;
