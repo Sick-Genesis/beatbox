@@ -34,6 +34,20 @@
       el.style.transformOrigin = `${cx}px ${cy}px`;
       el.style.transform = `scale(${fx}, ${fy})`;
     });
+
+    // The volume knob is a special case: it must stay round, but its X
+    // position is meaningful (it slides), so it can't be counter-scaled
+    // horizontally around a fixed origin — that would drag it back toward
+    // centre and stop it reaching the track ends. Scale it on Y only, around
+    // its live centre, so it renders circular without distorting its travel.
+    // A Y-only scale, so the horizontal origin is irrelevant (X is untouched)
+    // and the transform needn't update as the knob slides. cy=71 is fixed.
+    const knob = document.getElementById('slider-knob');
+    if (knob) {
+      knob.style.transformBox = 'view-box';
+      knob.style.transformOrigin = `49px 71px`;
+      knob.style.transform = `scale(1, ${fy / fx})`;
+    }
   }
 
   window.addEventListener('resize', applyAspectFix);

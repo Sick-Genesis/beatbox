@@ -108,7 +108,11 @@
       <!-- Invisible wide hit-line so the whole volume track is clickable, not
            just the knob. Click anywhere to jump the knob there. -->
       <line id="slider-track" x1="42" y1="71" x2="56" y2="71" stroke="transparent" stroke-width="4" style="cursor:pointer"/>
-      <circle id="slider-knob" class="keep-aspect" data-cx="49" data-cy="71" cx="49" cy="71" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:pointer"/>
+      <!-- NOT keep-aspect: that class counter-scales horizontally around a
+           fixed origin (data-cx=49), which dragged the rendered knob back
+           toward centre so it never reached the track ends. The knob's X
+           position is its whole function, so it must map straight through. -->
+      <circle id="slider-knob" data-cy="71" cx="49" cy="71" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:pointer"/>
       <!-- prev -->
       <g class="keep-aspect" data-cx="42" data-cy="80.5">
         <circle class="prev" cx="42" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
