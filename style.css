@@ -55,6 +55,17 @@
   fill: #e0e0e0;
 }
 
+/* Wordmark in the top bar. Sized in viewBox units; bold and tightly stacked
+   so "BEAT / BOX" reads as one mark. Inherits the theme via the text rule
+   above (dark mode flips it to #e0e0e0). */
+svg.layout .logo-word {
+  font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 800;
+  font-size: 4.4px;
+  letter-spacing: -0.15px;
+  fill: #111;
+}
+
 [data-theme="dark"] svg.layout polygon[fill="black"],
 [data-theme="dark"] svg.layout rect[fill="black"],
 [data-theme="dark"] svg.layout path[fill="black"] {

@@ -24,6 +24,14 @@
           stroke="black"
           stroke-width="0.2"
         />
+        <!-- Wordmark, left-aligned in the top banner. Inline SVG text (not an
+             image) so it stays crisp at any size and follows the theme via
+             CSS. keep-aspect counters the layout's non-uniform stretch so the
+             letters aren't squashed; data-cx/cy give its pivot. -->
+        <g class="top-bar__logo keep-aspect" data-cx="3" data-cy="5">
+          <text x="3" y="4.6" class="logo-word">BEAT</text>
+          <text x="3" y="8.8" class="logo-word">BOX</text>
+        </g>
       </g>
 
       <g class="side-bar">
