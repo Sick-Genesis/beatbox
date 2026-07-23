@@ -46,9 +46,13 @@ function mountSignedInBar(store) {
       document.body.appendChild(bar);
     }
     const s = store.getSessionSync();
+    // Library lives here, next to the account — "my stuff" is an account
+    // affordance, kept distinct from the sidebar's ★ favourites.
     bar.innerHTML = `
       <span class="auth-bar__who">@${s.handle}</span>
+      <button class="auth-btn" id="demo-library" type="button">library</button>
       <button class="auth-btn" id="demo-signout" type="button">sign out</button>`;
+    bar.querySelector('#demo-library').addEventListener('click', () => openLibrary(store));
     bar.querySelector('#demo-signout').addEventListener('click', () => store.signOut());
   };
   // Render now and again shortly after, in case auth-ui repaints its own bar.
@@ -99,7 +103,9 @@ function wireSidebarIcons(store) {
   if (!svg) return;
 
   // Overlay buttons, positioned as a % of the SVG box to track its scaling.
-  addHit(svg, { cx: 2.5, cy: 27.8, label: 'Your library' }, () => openLibrary(store));
+  // ★ is favourites (bookmarked beats), distinct from the library in the
+  // account bar; the envelope is trade offers.
+  addHit(svg, { cx: 2.5, cy: 27.8, label: 'Favourites' }, () => openFavourites());
   addHit(svg, { cx: 2.5, cy: 34.4, label: 'Trade offers' }, () => openOffers(store));
 
   // Show the pending-offer count as a small badge over the envelope.
@@ -189,6 +195,33 @@ async function openLibrary(store) {
       await store.getMasterDownloadUrl(btn.dataset.beat);
     });
   });
+}
+
+function openFavourites() {
+  // Favourites are the beats starred with the row ★ in the list view. That
+  // toggles `.bookmark.starred` on a row; read those back to window.beatBank.
+  const starred = [];
+  document.querySelectorAll('tr.track-row').forEach((row) => {
+    if (row.querySelector('.bookmark.starred')) {
+      const i = Number(row.dataset.index);
+      const beat = window.beatBank?.[i];
+      if (beat) starred.push(beat);
+    }
+  });
+
+  const rows = starred.length
+    ? starred.map((b) => `
+        <li class="demo-lib__row">
+          <span class="demo-lib__title">${esc(b.title)}</span>
+          <span class="demo-lib__artist">${esc(b.artist)}</span>
+          <span class="demo-lib__kind">${b.isFree ? 'free' : (b.bpm ? b.bpm + ' bpm' : '')}</span>
+          <span class="demo-lib__price"></span>
+        </li>`).join('')
+    : '<li class="demo-lib__empty">No favourites yet — tap the ☆ on any beat to save it here.</li>';
+
+  panel('Favourites', `
+    <p class="demo-modal__lead">Beats you’ve starred. Just a shortlist — saving one doesn’t buy it.</p>
+    <ul class="demo-lib">${rows}</ul>`);
 }
 
 async function openOffers(store) {

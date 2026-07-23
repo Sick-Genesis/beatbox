@@ -80,7 +80,9 @@
 .demo-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1300;
+  /* Above the upload window (z-index 10000 in style.css), so a panel opened
+     while upload is showing sits in front of it, not behind. */
+  z-index: 10500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,17 +142,29 @@
 .demo-tier__price { grid-area: price; font-weight: 600; }
 .demo-tier__terms { grid-area: terms; font-size: 11px; color: var(--muted, #777); }
 
+/* Primary action buttons. In light mode --accent is black, so a filled
+ * accent button with dark text would be invisible — use the app's light-mode
+ * pattern (dark fill, white text) and reserve the acid-green treatment for
+ * dark mode, matching .track-action in style.css. */
 .demo-buy, .demo-intro__go {
   width: 100%;
   padding: 11px;
   font: 600 13px/1 -apple-system, sans-serif;
-  color: #0e0e0e;
-  background: var(--accent, #c8ff00);
-  border: 1px solid var(--demo-border);
+  color: #fff;
+  background: #111;
+  border: 1px solid #111;
   border-radius: 8px;
   cursor: pointer;
 }
-.demo-buy:hover, .demo-intro__go:hover { filter: brightness(1.05); }
+.demo-buy:hover, .demo-intro__go:hover { background: #333; }
+[data-theme="dark"] .demo-buy,
+[data-theme="dark"] .demo-intro__go {
+  color: #0e0e0e;
+  background: var(--accent, #c8ff00);
+  border-color: var(--accent, #c8ff00);
+}
+[data-theme="dark"] .demo-buy:hover,
+[data-theme="dark"] .demo-intro__go:hover { background: #a6d400; }
 
 /* ── Library ────────────────────────────────────────────────────────────── */
 
@@ -198,7 +212,13 @@
   border-radius: 6px;
   cursor: pointer;
 }
-.demo-offer__accept { color: #0e0e0e; background: var(--accent, #c8ff00); }
+.demo-offer__accept { color: #fff; background: #111; border-color: #111; }
+.demo-offer__accept:hover { background: #333; }
+[data-theme="dark"] .demo-offer__accept {
+  color: #0e0e0e;
+  background: var(--accent, #c8ff00);
+  border-color: var(--accent, #c8ff00);
+}
 .demo-offer__decline { background: none; color: inherit; }
 
 /* ── Intro notice ───────────────────────────────────────────────────────── */
@@ -238,7 +258,7 @@
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
-  z-index: 1400;
+  z-index: 10600;
   max-width: min(420px, calc(100vw - 32px));
   padding: 11px 16px;
   font: 500 13px/1.4 -apple-system, sans-serif;

@@ -67,10 +67,12 @@ node scripts/gen-demo-peaks.mjs   # prints peaks to paste into demo-data.js
 - **Real, interactive:** browse, play, seek, waveform, expand a row for
   licences, buy (mock checkout → unlocks + lands in library), claim a free
   beat, upload a beat (appears in the catalog, plays back).
-- **Preview of where it's headed:** the **offers inbox** and **library** open
-  as panels off the sidebar; messaging is noted as in development. The trade
-  *settlement* logic underneath is already built server-side — only its UI is
-  a preview here.
+- **Preview of where it's headed:** the **offers inbox** opens off the
+  sidebar envelope; **favourites** (starred beats) off the sidebar ★; the
+  **library** (owned beats) from the account bar. Favourites and library are
+  deliberately separate — a shortlist vs. what you own. Messaging is noted as
+  in development. The trade *settlement* logic underneath is already built
+  server-side — only its UI is a preview here.
 
 ## Deploy (Vercel)
 
