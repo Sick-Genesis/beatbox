@@ -58,7 +58,17 @@
       artist.textContent = item.artist;
 
       el.append(artwork, title, artist);
-      el.addEventListener('click', () => goTo(i));
+      // Click a side item to bring it to centre; click the already-centred
+      // item to play it. This is the coverflow convention — navigation clicks
+      // rotate the wheel, and a click on the front item starts playback,
+      // rather than every click blasting audio.
+      el.addEventListener('click', () => {
+        if (i === currentIndex) {
+          window.beatTransport?.play?.();
+        } else {
+          goTo(i);
+        }
+      });
       container.appendChild(el);
     });
   }
