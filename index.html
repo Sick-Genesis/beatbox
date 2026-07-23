@@ -104,11 +104,10 @@
         stroke="black"
         stroke-width="0.3"
       />
-      <line x1="34" y1="71" x2="64" y2="71" stroke="black" stroke-width="0.4"/>
+      <line x1="42" y1="71" x2="56" y2="71" stroke="black" stroke-width="0.4"/>
       <!-- Invisible wide hit-line so the whole volume track is clickable, not
-           just the knob. Click anywhere to jump the knob there. Spans the same
-           x=34→64 as the waveform below, so the two bars line up. -->
-      <line id="slider-track" x1="34" y1="71" x2="64" y2="71" stroke="transparent" stroke-width="4" style="cursor:pointer"/>
+           just the knob. Click anywhere to jump the knob there. -->
+      <line id="slider-track" x1="42" y1="71" x2="56" y2="71" stroke="transparent" stroke-width="4" style="cursor:pointer"/>
       <circle id="slider-knob" class="keep-aspect" data-cx="49" data-cy="71" cx="49" cy="71" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:pointer"/>
       <!-- prev -->
       <g class="keep-aspect" data-cx="42" data-cy="80.5">
@@ -275,7 +274,7 @@
     const knob = document.getElementById('slider-knob');
     const track = document.getElementById('slider-track');
     const svg  = document.querySelector('svg.layout');
-    const minX = 34, maxX = 64;
+    const minX = 42, maxX = 56;
     let dragging = false;
 
     // Move the knob to wherever the pointer is along the track (clamped).

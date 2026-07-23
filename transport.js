@@ -19,7 +19,7 @@
   // ── Audio engine ────────────────────────────────────────────────────────────
 
   const audio = new Audio();
-  audio.volume = 0.5; // knob starts at cx=49, midpoint of 34–64
+  audio.volume = 0.5; // knob starts at cx=49, midpoint of 42–56
 
   // ── SVG element references ──────────────────────────────────────────────────
 
@@ -250,7 +250,7 @@
   // ── Volume — observe slider-knob cx attribute ────────────────────────────────
 
   const sliderKnob = document.getElementById('slider-knob');
-  const VOL_MIN = 34, VOL_MAX = 64;
+  const VOL_MIN = 42, VOL_MAX = 56;
 
   function syncVolume() {
     const cx  = parseFloat(sliderKnob.getAttribute('cx'));
