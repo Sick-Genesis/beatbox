@@ -39,14 +39,20 @@
       const artwork = document.createElement('div');
       artwork.className = 'carousel-item__artwork';
 
-      // If a real artwork file is provided, try to load it. If it fails
-      // (or none is given yet), the placeholder pattern shows through.
+      // If a real artwork file is provided, try to load it. Otherwise give
+      // the placeholder a flat colour spread around the wheel by position,
+      // so an artwork-less catalog reads as a row of distinct tracks rather
+      // than identical grey stripes.
       if (item.artwork) {
         const img = document.createElement('img');
         img.src = item.artwork;
         img.alt = item.title;
         img.onerror = () => img.remove();
         artwork.appendChild(img);
+      } else {
+        const hue = Math.round((i * 360) / items.length);
+        artwork.style.setProperty('--cover-hue', hue);
+        artwork.classList.add('carousel-item__artwork--placeholder');
       }
 
       const title = document.createElement('div');
