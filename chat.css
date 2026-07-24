@@ -14,7 +14,7 @@
   min-width: 14px;
   height: 14px;
   padding: 0 3px;
-  font-family: -apple-system, sans-serif;
+  font-family: 'Univers', -apple-system, sans-serif;
   font-size: 9px;
   font-weight: 700;
   line-height: 14px;
@@ -40,7 +40,7 @@
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--text);
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 [data-theme="dark"] .chat-panel { border-color: var(--accent); }
 .chat-panel.is-open { display: flex; }
@@ -157,7 +157,7 @@
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--text);
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 [data-theme="dark"] .chat-dm { border-color: var(--accent); }
 .chat-dm.is-open { display: flex; }

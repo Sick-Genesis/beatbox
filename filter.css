@@ -14,7 +14,7 @@
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--text);
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 [data-theme="dark"] .filter-panel { border-color: var(--accent); }
 .filter-panel.is-open { display: flex; }

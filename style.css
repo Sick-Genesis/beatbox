@@ -1,3 +1,39 @@
+@font-face {
+  font-family: 'Univers';
+  src: url('/font/univers/UniversLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers';
+  src: url('/font/univers/UniversRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers';
+  src: url('/font/univers/UniversBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers Condensed';
+  src: url('/font/univers/UniversCnRg.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers Condensed';
+  src: url('/font/univers/UniversCnBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -57,7 +93,7 @@
    Inherits the theme via the text rule above (dark mode flips it to
    #e0e0e0). */
 svg.layout .logo-word {
-  font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Arial, sans-serif;
   font-weight: 300;
   font-size: 4.4px;
   letter-spacing: -0.15px;
@@ -157,7 +193,7 @@ svg.layout .bottom-panel g:has(.next) * {
 
 /* App-specific styles extracted from index.html */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); transition: background 0.2s; }
+body { width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); transition: background 0.2s; font-family: 'Univers', -apple-system, "Helvetica Neue", Arial, sans-serif; }
 svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
 
 .site-credit {
@@ -165,7 +201,7 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   left: 10px;
   bottom: 6px;
   z-index: 80;
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 9px;
   letter-spacing: 0.06em;
   color: var(--muted);
@@ -180,7 +216,7 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
   overflow-y: scroll;
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
 }
 .carousel-container {
@@ -191,7 +227,7 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
   overflow: hidden;
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
   perspective: 1100px;
 }
@@ -212,7 +248,7 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   top: 21.5%;
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
   z-index: 10000;
   display: flex;
