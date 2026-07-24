@@ -156,11 +156,15 @@
       return;
     }
 
-    // No buy link yet → fall back to contacting the producer (the report's
-    // correspondence path). Messaging isn't built, so this is a stub that
-    // makes the beat actionable rather than a dead end.
+    // No buy link yet → fall back to contacting the producer directly.
     const btn = actionButton('Message producer', 'buy');
-    btn.addEventListener('click', () => flash(host, 'Messaging is coming soon — this beat isn’t for sale yet.'));
+    btn.addEventListener('click', () => {
+      if (!item.producerId) {
+        flash(host, 'This beat has no producer on file yet.');
+        return;
+      }
+      api.startDm?.(item.producerId, item.artist || 'producer');
+    });
     host.appendChild(btn);
   }
 

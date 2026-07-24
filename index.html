@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="upload.css">
   <link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="chat.css">
 </head>
 <body>
   <svg class="layout" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -44,8 +45,14 @@
       />
       <!-- bookmarks star-->
       <polygon class="keep-aspect side-nav__star" data-cx="2.5" data-cy="27.8" points="2.5,26 3,27.5 4.5,27.5 3.3,28.4 3.8,30 2.5,29.1 1.2,30 1.7,28.4 0.5,27.5 2,27.5" fill="hotpink"/>
-      <!-- envelope -->
-      <g class="keep-aspect" data-cx="2.5" data-cy="34.4">
+      <!-- envelope: opens the chat panel. The visible shapes are fill="none"
+           outlines, which SVG only hit-tests on the stroke itself — so a
+           transparent (but filled) rect gives the whole icon a clickable
+           area, the same way the filled upload icon already gets one for
+           free from its white background. -->
+      <g class="btn chat-launcher-icon keep-aspect" data-cx="2.5" data-cy="34.4" style="cursor:pointer">
+        <title>Messages</title>
+        <rect x="0.5" y="33" width="4" height="2.8" fill="transparent"/>
         <rect x="0.5" y="33" width="4" height="2.8" fill="none" stroke="black" stroke-width="0.2"/>
         <polyline points="0.5,33 2.5,34.6 4.5,33" fill="none" stroke="black" stroke-width="0.2"/>
       </g>

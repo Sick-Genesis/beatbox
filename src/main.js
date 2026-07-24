@@ -20,6 +20,7 @@ import { tagBeat as runTagger, canTagInBrowser, extractPeaks } from './tagger.js
 import {
   buildBuyUrl, claimPendingOrders, listPurchases, ownsBeat,
 } from './purchases-repo.js';
+import { initChatUI, startDm } from './chat-ui.js';
 
 // The platform tag lives in the public dir (asset/), so it is referenced by
 // its served path rather than imported — Vite copies asset/ verbatim.
@@ -68,6 +69,7 @@ window.beatboxApi = {
   reloadBeats: loadBeats,
   RIGHTS_WARRANTY_TEXT,
   FREE_TERMS_TEXT,
+  startDm,
 };
 
 // When someone signs in, attach any purchases that were waiting on their
@@ -117,4 +119,5 @@ async function loadBeats() {
 }
 
 initAuthUI();
+initChatUI();
 loadBeats();
