@@ -76,7 +76,7 @@ function mountIntro() {
     <button class="demo-intro__x" type="button" aria-label="Dismiss">✕</button>
     <h2>You’re inside beatbox.</h2>
     <p>
-      An interactive demo of a beat marketplace we are building, on fake ai-generated data.
+      An interactive demo of a beat marketplace and trading platform we are building, on sample (ai-generated) data.
       You’re signed in as <b>@sila</b>, a producer. Play beats, open a row for
       licences, buy one, or upload your own. Nothing is saved;
       a refresh resets everything.
