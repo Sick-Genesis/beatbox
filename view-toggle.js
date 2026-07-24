@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
     carouselBtn.addEventListener('click', function() {
       carouselContainer.style.display = 'block';
       listContainer.style.display = 'none';
+      // carousel.js's positioning math reads the container's live width —
+      // while it was display:none (true at load, since list view shows
+      // first) that width was 0, so every item's spacing/depth computed to
+      // 0 and they rendered stacked on top of each other until some later
+      // interaction (like clicking an item) forced a recompute. Now that
+      // the container has just become visible and has a real width, force
+      // that recompute immediately.
+      window.beatCarousel?.rebuild?.();
     });
   }
 
