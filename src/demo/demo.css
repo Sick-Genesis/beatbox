@@ -1,17 +1,10 @@
 /* demo.css
  *
- * Chrome for the demo build only (loaded from demo-boot.js). Matches
- * beatbox's language — hairline borders, monochrome, the acid-green --accent
- * in dark mode — reusing the CSS variables auth.css already defines
- * (--text, --muted, --accent).
+ * Chrome for the demo build only (loaded from demo-boot.js). Built from the
+ * app's own vocabulary, not a separate style: sharp 1-1.5px borders, no
+ * radius, no shadows, hotpink/--accent for state, uppercase 9-10px micro
+ * labels, the same modal/button/toast recipes as auth.css and style.css.
  */
-
-:root {
-  --demo-border: rgba(0, 0, 0, 0.75);
-}
-[data-theme="dark"] {
-  --demo-border: rgba(255, 255, 255, 0.5);
-}
 
 /* ── DEMO badge ─────────────────────────────────────────────────────────── */
 
@@ -22,28 +15,28 @@
   z-index: 1200;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   padding: 5px 10px;
-  font: 600 11px/1 -apple-system, "Helvetica Neue", sans-serif;
-  letter-spacing: 0.08em;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--text, #111);
-  background: var(--bg, #fff);
-  border: 1px solid var(--demo-border);
-  border-radius: 999px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--text);
 }
+[data-theme="dark"] .demo-badge { border-color: var(--accent); }
 .demo-badge__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #d33;
-  animation: demo-pulse 1.8s ease-in-out infinite;
+  width: 6px;
+  height: 6px;
+  background: hotpink;
 }
-[data-theme="dark"] .demo-badge__dot { background: var(--accent, #c8ff00); }
-@keyframes demo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 /* ── Sidebar hit-areas + count badge ────────────────────────────────────── */
+/* Transparent hit targets over the SVG icons; no visible chrome of their
+   own, matching how the SVG buttons carry no hover fill either. */
 
 .demo-hit {
   position: fixed;
@@ -53,29 +46,31 @@
   transform: translate(-50%, -50%);
   padding: 0;
   border: 0;
-  border-radius: 6px;
   background: transparent;
   cursor: pointer;
 }
-.demo-hit:hover { background: rgba(127, 127, 127, 0.15); }
-.demo-hit:focus-visible { outline: 2px solid var(--accent, #c8ff00); }
+.demo-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .demo-count {
   position: fixed;
   z-index: 950;
   transform: translate(-50%, -50%);
-  min-width: 15px;
-  height: 15px;
-  padding: 0 4px;
-  font: 700 10px/15px -apple-system, sans-serif;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  font-family: -apple-system, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
   text-align: center;
   color: #fff;
-  background: #d33;
-  border-radius: 999px;
+  background: hotpink;
   pointer-events: none;
 }
 
 /* ── Overlays / modals (checkout, library, offers) ──────────────────────── */
+/* Same recipe as .auth-overlay / .auth-modal: dark scrim, sharp bordered
+   box, no radius, no shadow. */
 
 .demo-overlay {
   position: fixed;
@@ -86,186 +81,230 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.4);
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
 }
+[data-theme="dark"] .demo-overlay { background: rgba(0, 0, 0, 0.75); }
+
 .demo-modal {
-  width: min(520px, 100%);
+  width: min(480px, 100%);
   max-height: 88vh;
   overflow: auto;
-  background: var(--bg, #fff);
-  color: var(--text, #111);
-  border: 1px solid var(--demo-border);
-  border-radius: 10px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--text);
 }
+[data-theme="dark"] .demo-modal { border-color: var(--accent); }
+
 .demo-modal__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
-  font: 600 11px/1 -apple-system, sans-serif;
-  letter-spacing: 0.06em;
+  padding: 8px 12px;
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted, #666);
-  border-bottom: 1px solid var(--demo-border);
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
 }
 .demo-modal__x {
   border: 0;
   background: none;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  color: var(--muted, #666);
+  color: var(--muted);
 }
-.demo-modal__body { padding: 16px 18px 20px; }
-.demo-modal__lead { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: var(--muted, #555); }
-.demo-modal__title { margin: 0 0 12px; font-size: 20px; }
-.demo-modal__foot { margin: 12px 0 0; font-size: 11px; color: var(--muted, #888); }
+.demo-modal__x:hover { color: var(--text); }
+.demo-modal__body { padding: 16px; }
+.demo-modal__lead { margin: 0 0 14px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.demo-modal__title { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+.demo-modal__foot { margin: 10px 0 0; font-size: 10px; color: var(--muted); }
 
 /* ── Checkout tiers ─────────────────────────────────────────────────────── */
+/* Same shape as .upload-form__field: no boxes, an underline, uppercase
+   micro-labels — not cards. */
 
-.demo-tiers { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.demo-tiers { display: flex; flex-direction: column; margin-bottom: 16px; }
 .demo-tier {
   display: grid;
   grid-template-columns: auto 1fr auto;
   grid-template-areas: "radio kind price" "radio terms terms";
-  gap: 2px 10px;
+  gap: 1px 10px;
   align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--demo-border);
-  border-radius: 8px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
 }
-.demo-tier:hover { background: rgba(127, 127, 127, 0.08); }
-.demo-tier input { grid-area: radio; }
-.demo-tier__kind { grid-area: kind; font-weight: 600; text-transform: capitalize; }
-.demo-tier__price { grid-area: price; font-weight: 600; }
-.demo-tier__terms { grid-area: terms; font-size: 11px; color: var(--muted, #777); }
+.demo-tier input { grid-area: radio; accent-color: var(--text); }
+[data-theme="dark"] .demo-tier input { accent-color: var(--accent); }
+.demo-tier__kind {
+  grid-area: kind;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.demo-tier__price { grid-area: price; font-size: 13px; font-weight: 600; }
+.demo-tier__terms { grid-area: terms; font-size: 10px; color: var(--muted); }
 
-/* Primary action buttons. In light mode --accent is black, so a filled
- * accent button with dark text would be invisible — use the app's light-mode
- * pattern (dark fill, white text) and reserve the acid-green treatment for
- * dark mode, matching .track-action in style.css. */
+/* Primary actions — same recipe as .upload-form__submit / .track-action:
+   sharp border, flat fill, background flips on hover, no radius. */
 .demo-buy, .demo-intro__go {
   width: 100%;
-  padding: 11px;
-  font: 600 13px/1 -apple-system, sans-serif;
+  padding: 8px 0;
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.06em;
   color: #fff;
   background: #111;
-  border: 1px solid #111;
-  border-radius: 8px;
+  border: 1.5px solid #111;
   cursor: pointer;
+  transition: background 0.1s;
 }
 .demo-buy:hover, .demo-intro__go:hover { background: #333; }
 [data-theme="dark"] .demo-buy,
 [data-theme="dark"] .demo-intro__go {
   color: #0e0e0e;
-  background: var(--accent, #c8ff00);
-  border-color: var(--accent, #c8ff00);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 [data-theme="dark"] .demo-buy:hover,
 [data-theme="dark"] .demo-intro__go:hover { background: #a6d400; }
 
-/* ── Library ────────────────────────────────────────────────────────────── */
+/* ── Library / favourites list ──────────────────────────────────────────── */
+/* Row list, same bones as .tracklist rows: no card borders, a hairline
+   divider, hover fill via --surface. */
 
-.demo-lib { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.demo-lib { list-style: none; margin: 0; padding: 0; }
 .demo-lib__row {
   display: grid;
   grid-template-columns: 1fr auto auto auto;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--demo-border);
-  border-radius: 8px;
-  font-size: 13px;
-}
-.demo-lib__title { font-weight: 600; }
-.demo-lib__artist { color: var(--muted, #777); }
-.demo-lib__kind { text-transform: capitalize; color: var(--muted, #777); font-size: 12px; }
-.demo-lib__dl {
-  padding: 5px 10px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
-  border: 1px solid var(--demo-border);
-  border-radius: 6px;
+}
+.demo-lib__row:hover { background: var(--surface); }
+.demo-lib__title { font-weight: 600; }
+.demo-lib__artist { color: var(--muted); }
+.demo-lib__kind {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.demo-lib__dl {
+  padding: 3px 10px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--text);
   background: none;
-  color: inherit;
+  color: var(--text);
   cursor: pointer;
 }
-.demo-lib__empty { color: var(--muted, #777); font-size: 13px; }
+[data-theme="dark"] .demo-lib__dl { border-color: var(--accent); }
+.demo-lib__dl:hover { background: var(--surface); }
+.demo-lib__empty { padding: 8px 4px; color: var(--muted); font-size: 12px; }
 
 /* ── Offers ─────────────────────────────────────────────────────────────── */
 
-.demo-offer { border: 1px solid var(--demo-border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.demo-offer { border-bottom: 1px solid var(--border); padding: 14px 0; }
+.demo-offer:last-child { border-bottom: 0; }
 .demo-offer__swap { display: flex; align-items: center; gap: 12px; }
-.demo-offer__side { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
-.demo-offer__side b { font-size: 15px; }
-.demo-offer__side span { color: var(--muted, #777); font-size: 12px; }
-.demo-offer__label { text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px !important; }
-.demo-offer__arrow { font-size: 20px; color: var(--muted, #999); }
-.demo-offer__msg { margin: 12px 0; font-size: 13px; font-style: italic; color: var(--muted, #666); }
+.demo-offer__side { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.demo-offer__side b { font-size: 14px; font-weight: 600; }
+.demo-offer__side span { color: var(--muted); font-size: 11px; }
+.demo-offer__label {
+  font-size: 9px !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.demo-offer__arrow { font-size: 16px; color: var(--muted); }
+.demo-offer__msg { margin: 10px 0; font-size: 12px; font-style: italic; color: var(--muted); }
 .demo-offer__actions { display: flex; gap: 8px; }
 .demo-offer__accept, .demo-offer__decline {
   flex: 1;
-  padding: 9px;
-  font: 600 12px/1 -apple-system, sans-serif;
-  border: 1px solid var(--demo-border);
-  border-radius: 6px;
+  padding: 6px 0;
+  font-family: -apple-system, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  border: 1.5px solid #111;
   cursor: pointer;
+  transition: background 0.1s;
 }
-.demo-offer__accept { color: #fff; background: #111; border-color: #111; }
+.demo-offer__accept { color: #fff; background: #111; }
 .demo-offer__accept:hover { background: #333; }
 [data-theme="dark"] .demo-offer__accept {
   color: #0e0e0e;
-  background: var(--accent, #c8ff00);
-  border-color: var(--accent, #c8ff00);
+  background: var(--accent);
+  border-color: var(--accent);
 }
-.demo-offer__decline { background: none; color: inherit; }
+.demo-offer__decline { background: none; color: var(--text); border-color: var(--border); }
+.demo-offer__decline:hover { border-color: var(--text); }
 
 /* ── Intro notice ───────────────────────────────────────────────────────── */
+/* Same recipe as .auth-modal: sharp border, flat, no shadow, no radius. */
 
 .demo-intro {
   position: fixed;
   right: 16px;
   bottom: 56px;
   z-index: 1250;
-  width: min(340px, calc(100vw - 32px));
-  padding: 18px 18px 16px;
-  background: var(--bg, #fff);
-  color: var(--text, #111);
-  border: 1px solid var(--demo-border);
-  border-radius: 12px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  width: min(320px, calc(100vw - 32px));
+  padding: 18px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--text);
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
 }
-.demo-intro h2 { margin: 0 0 8px; font-size: 17px; }
-.demo-intro p { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--muted, #555); }
-.demo-intro__note { font-size: 12px !important; color: var(--muted, #888) !important; }
+[data-theme="dark"] .demo-intro { border-color: var(--accent); }
+.demo-intro h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+.demo-intro p { margin: 0 0 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.demo-intro__note {
+  font-size: 10px !important;
+  letter-spacing: 0.03em;
+  color: var(--muted) !important;
+}
 .demo-intro__x {
   position: absolute;
-  top: 10px;
-  right: 12px;
+  top: 8px;
+  right: 10px;
   border: 0;
   background: none;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
-  color: var(--muted, #888);
+  color: var(--muted);
 }
+.demo-intro__x:hover { color: var(--text); }
 .demo-intro__go { margin-top: 4px; }
 
-/* ── Demo toast (store-driven notices) ──────────────────────────────────── */
+/* ── Demo toast ─────────────────────────────────────────────────────────── */
+/* Same recipe as .auth-toast: sharp border, no shadow, top-right, slide-in. */
 
 .demo-toast {
   position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
+  top: 44px;
+  right: 12px;
   z-index: 10600;
-  max-width: min(420px, calc(100vw - 32px));
-  padding: 11px 16px;
-  font: 500 13px/1.4 -apple-system, sans-serif;
-  text-align: center;
-  color: var(--text, #111);
-  background: var(--bg, #fff);
-  border: 1px solid var(--demo-border);
-  border-radius: 999px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  max-width: 300px;
+  padding: 8px 13px;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--text);
+  animation: demo-toast-in 0.16s ease-out;
+}
+[data-theme="dark"] .demo-toast { border-color: var(--accent); }
+
+@keyframes demo-toast-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-toast { animation: none; }
 }
