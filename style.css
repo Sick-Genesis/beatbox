@@ -470,31 +470,37 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   font-size: 11px;
   perspective: 1100px;
 }
+/* The upload window floats over the site as a movable desktop window — the
+ * rest of the app stays live while it's open. So the container is a pure
+ * positioning layer that must NOT catch clicks: pointer-events pass through
+ * it to whatever is beneath (carousel, list, transport). Only the box itself
+ * is interactive. The box carries the window's own border/background — the
+ * container no longer frames it. */
 .upload-container {
   position: fixed;
-  border: 3px solid #000000;
   left: 9%;
   top: 21.5%;
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
-  overflow: hidden;
   font-family: -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
-  background: white;
   z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;   /* clicks fall through the empty area to the site */
 }
 .upload-container__box {
   width: 100%;
   height: 100%;
-  border: 2px solid #000000;
+  border: 3px solid #000000;
   background: white;
   overflow: hidden;   /* title bar stays put; the form scrolls within */
   -webkit-overflow-scrolling: touch;
   touch-action: auto;
   padding: 0;
+  pointer-events: auto;   /* the window itself is interactive */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 /* Override global SVG sizing for SVGs inside upload box so they stay bounded */
 .upload-container__box svg {
@@ -525,6 +531,28 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 6px, #e2e2e2 6px, #e2e2e2 12px);
   margin-bottom: 6px;
   overflow: hidden;
+}
+/* No artwork uploaded: a flat colour per track (hue set by carousel.js as
+   --cover-hue, spread evenly around the wheel) instead of the grey stripe,
+   so a catalog without artwork still reads as distinct covers. Same
+   diagonal split as the placeholder, just coloured. */
+.carousel-item__artwork--placeholder {
+  background: repeating-linear-gradient(
+    45deg,
+    hsl(var(--cover-hue) 65% 88%),
+    hsl(var(--cover-hue) 65% 88%) 6px,
+    hsl(var(--cover-hue) 65% 80%) 6px,
+    hsl(var(--cover-hue) 65% 80%) 12px
+  );
+}
+[data-theme="dark"] .carousel-item__artwork--placeholder {
+  background: repeating-linear-gradient(
+    45deg,
+    hsl(var(--cover-hue) 40% 22%),
+    hsl(var(--cover-hue) 40% 22%) 6px,
+    hsl(var(--cover-hue) 40% 16%) 6px,
+    hsl(var(--cover-hue) 40% 16%) 12px
+  );
 }
 .carousel-item__artwork img {
   width: 100%;
