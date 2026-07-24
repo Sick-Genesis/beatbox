@@ -2,10 +2,12 @@
 
 How the project actually works today. Kept up to date as things change.
 
-**Status:** front-end prototype + backend foundation. The data model is in
-place; nothing sells yet.
+**Status:** selling and trading both execute end to end (Gumroad checkout
+for sales, atomic on-chain-style settlement for trades). Chat and filtering
+are live. Moderation, profile screens, and trade UI are still missing — see
+[What's not built yet](#whats-not-built-yet).
 
-Last updated: 2026-07-21
+Last updated: 2026-07-24
 
 ---
 
@@ -18,6 +20,8 @@ Last updated: 2026-07-21
 - [Database schema](#database-schema)
 - [Selling mechanism](#selling-mechanism)
 - [Trade mechanism](#trade-mechanism)
+- [Direct messages](#direct-messages)
+- [Filtering](#filtering)
 - [Build & run](#build--run)
 - [What's not built yet](#whats-not-built-yet)
 - [Known issues](#known-issues)
@@ -77,12 +81,15 @@ Load order in `index.html` is significant and enforced by tag order:
 aspect-fix.js     → SVG geometry correction
 theme-toggle.js   → light/dark
 beat-data.js      → defines window.beatBank (placeholder rows)
-carousel.js       → reads beatBank, exposes window.beatCarousel
-view-toggle.js    → list ⇄ carousel visibility
+filter-state.js   → defines window.filteredBeats, a filtered VIEW of beatBank
+carousel.js       → reads filteredBeats, exposes window.beatCarousel
+list-view.js      → reads filteredBeats, exposes window.beatList
+view-toggle.js    → list ⇄ carousel visibility; rebuilds carousel on first show
 upload-toggle.js  → upload overlay visibility
-upload.js         → upload form, pushes into beatBank
-transport.js      → audio playback, reads beatBank + beatCarousel
-src/main.js       → (module, deferred) swaps in real data
+upload.js         → upload form, calls createBeat() via window.beatboxApi
+transport.js      → audio playback, reads filteredBeats + beatCarousel
+filter-ui.js      → filter panel, writes window.filterCriteria
+src/main.js       → (module, deferred) swaps in real data, boots chat + auth
 ```
 
 `src/main.js` is `type="module"`, so it's deferred automatically and runs
@@ -93,28 +100,49 @@ replace the placeholder data once the real rows arrive.
 
 | Global | Defined in | Used by |
 |---|---|---|
-| `window.beatBank` | `beat-data.js` | `carousel.js`, `transport.js`, `upload.js`, `src/main.js` |
-| `window.beatCarousel` | `carousel.js` | `transport.js`, `src/main.js` |
+| `window.beatBank` | `beat-data.js` | `filter-state.js`, `src/main.js` |
+| `window.filteredBeats` | `filter-state.js` | `carousel.js`, `list-view.js`, `transport.js` |
+| `window.filterCriteria` | `filter-state.js` | `filter-state.js`, `filter-ui.js` |
+| `window.beatCarousel` | `carousel.js` | `list-view.js`, `transport.js`, `view-toggle.js`, `src/main.js` |
+| `window.beatList` | `list-view.js` | `src/main.js`, `filter-ui.js` |
+| `window.beatboxApi` | `src/main.js` | `upload.js`, `list-view.js` (classic scripts can't `import`) |
 | `window.uploadToggle` | `upload-toggle.js` | `upload.js` |
 
 ### ⚠ The in-place mutation rule
 
-`carousel.js` captures the array **by reference** at IIFE time:
+`carousel.js` and `list-view.js` capture `filteredBeats` **by reference**
+at IIFE time:
 
 ```js
-const items = beatBank;   // carousel.js
+const items = filteredBeats;   // carousel.js
 ```
 
-So reassigning `window.beatBank = [...]` would leave the carousel
-rendering a detached copy forever, with no error. All data updates must
-mutate the existing array:
+So reassigning `window.filteredBeats = [...]` (or `window.beatBank =
+[...]`) would leave both views rendering a detached copy forever, with no
+error. All data updates must mutate the existing array in place:
 
 ```js
-targetArray.splice(0, targetArray.length, ...entries);   // beats-repo.js
+targetArray.splice(0, targetArray.length, ...entries);   // beats-repo.js, filter-state.js
 ```
 
-This is why `syncInto()` exists and why `beat-data.js` declares
-`window.beatBank = [...]` rather than `const beatBank`.
+This is why `syncInto()` exists, why `filter-state.js`'s `applyFilters()`
+splices `filteredBeats` rather than reassigning it, and why `beat-data.js`
+declares `window.beatBank = [...]` rather than `const beatBank`.
+
+**`filteredBeats` is a derived view, not a second source of truth.**
+`beatBank` holds the full catalog; `filteredBeats` is always recomputed
+from it plus `filterCriteria` via `window.beatFilters.apply()`. Anything
+that mutates `beatBank` (an upload, a reload from Supabase) must call
+`beatFilters.apply()` before rebuilding the views, or they'll render
+stale filtered data. `src/main.js`'s `loadBeats()` does this.
+
+**The three views must agree on what index N means.** `carousel.js`,
+`list-view.js`, and `transport.js`'s `currentTrack()` all index into
+`filteredBeats`. `list-view.js`'s `play(index)` calls
+`beatCarousel.goTo(index)` to keep the two views on the same selection —
+if any of the three read from a different array, "play row 2" and "the
+carousel's current item" would silently diverge whenever a filter is
+active.
 
 ### Transport
 
@@ -141,7 +169,7 @@ circle, and transport observes it rather than the two being coupled.
 
 ## Data layer
 
-Three modules under `src/`.
+Modules under `src/`, ES modules bundled by Vite.
 
 ### `supabase-client.js`
 
@@ -172,6 +200,22 @@ without migrating a single row.
 `createBeat()` cleans up after itself: if the DB insert fails after files
 have uploaded, it removes the orphaned objects from storage.
 
+### `purchases-repo.js`
+
+The buy side. `buildBuyUrl()` builds the outgoing link to a producer's
+Gumroad (with the params the webhook reads back), `claimPendingOrders()`
+attaches orders bought while signed out, `listPurchases()` and `ownsBeat()`
+back the buy/download button in `list-view.js`. See
+[Selling mechanism](#selling-mechanism).
+
+### `chat-repo.js`
+
+Direct messages. `openDm()`, `listConversations()`, `listMessages()`,
+`sendMessage()`, `searchMessageableUsers()`, plus
+`subscribeToMessages()` / `subscribeToInbox()` — Supabase Realtime
+channels standing in for what a WebSocket server would otherwise do. See
+[Direct messages](#direct-messages).
+
 ### `trades-repo.js`
 
 Barter negotiation. `proposeTrade`, `counterTrade`, `acceptTrade`,
@@ -181,14 +225,18 @@ Barter negotiation. `proposeTrade`, `counterTrade`, `acceptTrade`,
 Settlement deliberately does **not** happen here — `acceptTrade()` calls
 a Postgres function. See [Trade mechanism](#trade-mechanism).
 
-> Not yet imported by `main.js`. No UI calls it.
+> Fully built and functional; still not imported by `main.js`. No UI calls
+> it yet — the negotiation model (below) is real, but there's no screen to
+> propose, counter, or accept an offer from.
 
 ### `reports-repo.js`
 
 Takedown and dispute filing: `fileReport`, `listReports`,
 `withdrawReport`, plus `REPORT_KINDS`. Works signed-out, by design.
 
-> Not yet imported by `main.js`. No UI calls it.
+> Fully built and functional; still not imported by `main.js`. No UI calls
+> it yet, and there is no moderation surface to act on a filed report —
+> see [What's not built yet](#whats-not-built-yet).
 
 ---
 
@@ -207,8 +255,23 @@ Supabase (hosted Postgres). Files:
   on role, self-promotion blocked
 - `supabase/migrations/006_producer_as_capability.sql` — drops the signup
   role choice; producer is earned via `become_producer()` on first upload
+- `supabase/migrations/007_previews.sql` — preview state/mode columns for
+  the browser-side tagging pipeline
+- `supabase/migrations/008_free_beats.sql` — give-away beats: `is_free`,
+  `free_terms`, `claim_free_beat()`
+- `supabase/migrations/009_fix_legacy_previews.sql` — data-fix migration
+  for beats uploaded before `007`
+- `supabase/migrations/010_waveform_peaks.sql` — `beats.peaks[]` for the
+  transport's waveform display
+- `supabase/migrations/011_purchases.sql` — Gumroad payout links, `orders`,
+  `grant_purchase_license()`, `claim_pending_orders()`. See
+  [Selling mechanism](#selling-mechanism)
+- `supabase/migrations/012_chat.sql` — `conversations` and `messages`,
+  `find_or_create_dm()`, `search_messageable_users()`, added to the
+  Realtime publication. See [Direct messages](#direct-messages)
 
-Run in order via the Supabase SQL editor. Both are idempotent.
+Run in order via the Supabase SQL editor. All are idempotent — safe to
+re-run, and safe to run again after pulling new migrations.
 
 ### Tables
 
@@ -257,7 +320,19 @@ that prefix, so producers can't overwrite each other's files.
 
 ## Selling mechanism
 
-**Schema only. Nothing executes a sale yet.**
+**Executes end to end.** beatbox never touches money — a buyer pays the
+**producer** directly on the producer's own Gumroad, and a webhook tells
+beatbox the sale happened.
+
+1. `buildBuyUrl()` (`purchases-repo.js`) appends `url_params` to the
+   beat's `buy_url` so the webhook can tie the payment back to the right
+   beat, buyer, and license tier.
+2. The buyer pays on the producer's Gumroad. beatbox never sees the card.
+3. Gumroad calls the `gumroad-webhook` Edge Function, which writes a row
+   to `orders` and calls `grant_purchase_license()`.
+4. If the purchase can't be matched to a signed-in account yet (different
+   email, or wasn't signed in), the order is held `claimable` and attaches
+   automatically at next sign-in via `claim_pending_orders()`.
 
 A beat is never sold as a file — it's sold as a **license**, and one beat
 carries several tiers at once:
@@ -356,6 +431,79 @@ application code does.
 The `trades` table has a `select` policy and **no** insert/update/delete
 policy, making it append-only — only this `security definer` function
 writes to it.
+
+---
+
+## Direct messages
+
+Open DMs — anyone can message anyone by handle, no friend/follow gate.
+Deliberately smaller in scope than the `live-love-vomit` chat it's modelled
+on: no friend requests, no blocking, no groups, no presence. This is a
+marketplace; the one thing it needs is a way to reply to "message the
+producer," not a social graph.
+
+A conversation is always exactly two people, so `conversations` uses two
+plain columns (`member_a`, `member_b`) rather than a members join table —
+simpler than groups would need, and a `unique (member_a, member_b)`
+constraint prevents duplicate DMs between the same two users. The pair is
+canonically ordered by uuid text value in `find_or_create_dm()`, so it
+doesn't matter who messages whom first — the same row is found or created
+either way.
+
+**Delivery is Supabase Realtime, not a WebSocket server.**
+`subscribeToMessages()` opens a channel filtered to one conversation's
+`postgres_changes`; `subscribeToInbox()` opens an unfiltered one for the
+launcher's unread badge (RLS still applies to what the subscription can
+see). This replaces what `live-love-vomit`'s Express + `ws` server does,
+since beatbox has no custom server and Supabase already provides
+auth/persistence/live updates for the rest of the app.
+
+### Files
+
+| File | Role |
+|---|---|
+| `src/chat-repo.js` | Open/list conversations, send/list messages, Realtime subscriptions |
+| `src/chat-ui.js` | Launcher badge, contacts panel, draggable DM window |
+| `chat.css` | Styling — reuses `style.css`/`auth.css` tokens |
+
+The sidebar envelope icon opens the chat panel (`chat-launcher-icon` in
+`index.html`). Its visible shapes are `fill="none"` outlines, which SVG
+only hit-tests on the stroke line itself — a transparent filled `<rect>`
+sits behind them so the whole icon area is clickable, the same way the
+upload icon gets a clickable area for free from its white fill.
+
+`list-view.js`'s "Message producer" button (shown when a beat has no
+`buy_url` yet) calls `startDm()`. It's hidden entirely on your own
+beat — replaced with a note to add a price — rather than shown and left to
+fail on the server's "you cannot message yourself" check.
+
+---
+
+## Filtering
+
+`filteredBeats` (`filter-state.js`) is a **live, derived subset** of
+`beatBank` — see [the in-place mutation rule](#-the-in-place-mutation-rule)
+above for why it's spliced rather than reassigned, and why all three
+rendering scripts must read from it rather than `beatBank` directly.
+
+Filterable today: tags (multi-select, OR'd together), free vs. paid, BPM
+range, price range (lowest license tier). `window.beatFilters.apply()`
+recomputes `filteredBeats` from `beatBank` + `window.filterCriteria`;
+`allTags()` scans the current catalog to build the tag chip list, so it
+only ever offers tags that exist.
+
+Both views handle the empty-result case explicitly (a message, not a
+blank container), and `carousel.js`'s `goTo()` guards against dividing by
+zero when a filter matches nothing.
+
+**The filter panel is corner-docked, not anchored under its header icon.**
+An earlier version positioned it just below the funnel icon, which placed
+it directly on top of the list/carousel container (starting only a few
+viewBox units lower) — a click meant for a track would land on the filter
+panel instead. Caught by testing playback after a filter-then-reset cycle,
+not by looking at it. Same class of bug as the upload window overlap
+below; the fix is the same principle: interactive floating chrome must not
+sit on top of the content the user is trying to reach through it.
 
 ---
 
@@ -515,7 +663,7 @@ shared globals and load order. Vite leaves their tags pointing at the
 original filenames and warns about it.
 
 Left alone, those files never reach `dist/` and the built site 404s on all
-eight. `vite.config.js` has a small `copy-classic-scripts` plugin that
+of them. `vite.config.js` has a small `copy-classic-scripts` plugin that
 copies them verbatim after the bundle is written.
 
 **If you add a classic script at the repo root, add it to
@@ -529,21 +677,19 @@ build. Dev server is unaffected.
 
 ## What's not built yet
 
-Ordered roughly by what blocks what.
+Ordered roughly by what blocks what. Several items below were true as of
+the last rewrite of this doc and are **not** anymore — upload, purchases,
+list view, filtering, and messaging all now execute for real. What's left:
 
-- **Upload is still local.** `upload.js` pushes a blob into `beatBank`;
-  it does not call `createBeat()`. Uploads vanish on refresh, and the
-  form has no rights-warranty checkbox yet — `createBeat()` will reject
-  until it does.
 - **No profile or account screen.** `updateProfile()` exists; nothing
-  calls it.
+  calls it. There's no way to edit a handle/display name/bio after signup.
 - **No password-reset page.** `requestPasswordReset()` sends a link to
-  `/reset-password`, which does not exist yet.
-- **No orders table, no payment.** Nothing records a *purchase*. The
-  `licenses` table is ready for it (`origin = 'purchase'`, `order_id`),
-  but only trades write there today. Nothing flips `sold_exclusive` — a
-  producer would have to change it by hand.
-- **No trade UI.** `trades-repo.js` is unreferenced.
+  `/reset-password`, which does not exist yet — the modal flow works, the
+  destination doesn't.
+- **No trade UI.** `trades-repo.js` and its negotiation model
+  (propose/counter/accept/decline) are fully built and settle atomically,
+  but there is no screen to do any of it from. This is the single largest
+  gap between what the backend can do and what a user can reach.
 - **No moderation path.** `reports` can be filed but not resolved —
   nothing can withdraw a beat, uphold a claim, or act on repeat
   infringers. The columns exist; the admin surface does not.
@@ -552,15 +698,19 @@ Ordered roughly by what blocks what.
 - **No dispute reversal.** `accept_trade_offer()` is irreversible by
   design. There is no way to undo a trade made in error or bad faith,
   short of a manual database fix.
-- **No file gating.** Buying delivers nothing; audio sits in one public
-  bucket.
+- **No file gating.** Buying unlocks a licence row, but there's no signed
+  download flow wired to it end-to-end for every path — audio otherwise
+  sits in one public bucket.
 - **No watermarking.** Previews stream the full clean file, so the preview
   *is* the product. Load-bearing for revenue existing at all.
-- **No waveform player**, no search/filter, no tag UI.
-- **Bookmark star is decorative** — `index.html` has starred rows, nothing
-  persists them.
-- **List view is hardcoded HTML.** The `<tbody>` rows are static markup,
-  unconnected to `beatBank`. Only the carousel renders real data.
+- **Bookmark star is decorative.** `list-view.js` toggles the `☆`/`★`
+  class client-side; nothing persists it, so it resets on reload.
+- **Chat has no groups, presence, or blocking.** Deliberate scope cut, not
+  an oversight — see [Direct messages](#direct-messages). Worth revisiting
+  if disputes over messaging behavior come up.
+- **No message-producer entry point beyond the beat list.** Chat itself
+  works; there's no producer profile page to start a DM from, only the
+  "message producer" button on an unpriced beat.
 
 ---
 
@@ -583,6 +733,18 @@ leases") or it's a nasty surprise for the person receiving it.
 
 **`beat-data.js` placeholders are load-bearing.** They're the fallback when
 Supabase is unconfigured or empty. Deleting them gives a blank carousel.
+
+**Floating chrome has bitten this layout twice by overlapping content it
+shouldn't block.** The upload window used to be a large click-catching
+rectangle instead of just its visible box, freezing the carousel/list
+underneath while open. The filter panel's first position sat directly on
+top of the tracklist for the same reason (anchoring under the header,
+where the content area begins almost immediately below). Both were caught
+by testing an actual interaction *through* the floating element, not by
+looking at it. Any new floating panel/window should default to
+`pointer-events: none` on its outer positioning layer (only the visible
+box gets `auto`) and get manually checked against what sits behind it at
+common viewport sizes.
 
 **Marketplace ≠ shop, legally.** Selling your own catalog is a shop. Other
 people uploading and trading makes you an intermediary, with obligations

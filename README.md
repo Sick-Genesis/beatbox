@@ -26,6 +26,8 @@ data and logs a warning.
 Run against your Supabase project's SQL editor, in order:
 
 1. `supabase/schema.sql`
-2. `supabase/migrations/002_trades.sql`
+2. Every file in `supabase/migrations/`, in filename order
+   (`002_trades.sql`, `003_lease_trades.sql`, … up to the highest number).
 
-Both are idempotent.
+All are idempotent — safe to re-run, and safe to run again after pulling
+new migrations.
