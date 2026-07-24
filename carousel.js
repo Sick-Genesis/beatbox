@@ -39,14 +39,20 @@
       const artwork = document.createElement('div');
       artwork.className = 'carousel-item__artwork';
 
-      // If a real artwork file is provided, try to load it. If it fails
-      // (or none is given yet), the placeholder pattern shows through.
+      // If a real artwork file is provided, try to load it. Otherwise give
+      // the placeholder a flat colour spread around the wheel by position,
+      // so an artwork-less catalog reads as a row of distinct tracks rather
+      // than identical grey stripes.
       if (item.artwork) {
         const img = document.createElement('img');
         img.src = item.artwork;
         img.alt = item.title;
         img.onerror = () => img.remove();
         artwork.appendChild(img);
+      } else {
+        const hue = Math.round((i * 360) / items.length);
+        artwork.style.setProperty('--cover-hue', hue);
+        artwork.classList.add('carousel-item__artwork--placeholder');
       }
 
       const title = document.createElement('div');
@@ -58,7 +64,13 @@
       artist.textContent = item.artist;
 
       el.append(artwork, title, artist);
-      el.addEventListener('click', () => goTo(i));
+      // Clicking any track centres it and starts it playing — one click, not
+      // two. goTo() only plays the scroll sound when the index actually
+      // changes, so clicking the already-centred item doesn't re-trigger it.
+      el.addEventListener('click', () => {
+        goTo(i);
+        window.beatTransport?.play?.();
+      });
       container.appendChild(el);
     });
   }
