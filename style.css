@@ -64,6 +64,11 @@ svg.layout .logo-word {
   font-size: 4.4px;
   letter-spacing: -0.15px;
   fill: #111;
+  /* Stretch the glyphs horizontally for a wide, elongated wordmark. Scaled
+     about each text element's left edge so it grows rightward in place. */
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(1.8);
 }
 
 [data-theme="dark"] svg.layout polygon[fill="black"],
