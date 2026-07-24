@@ -1,9 +1,10 @@
 // list-view.js
 //
-// Renders beatBank into the .tracklist table, the counterpart to
-// carousel.js. Was previously static markup; main.js calls
-// window.beatList.rebuild() after data loads, the same way it drives the
-// carousel.
+// Renders filteredBeats (see filter-state.js) into the .tracklist table, the
+// counterpart to carousel.js. filteredBeats is a live subset of beatBank;
+// rebuild() re-renders it whenever the filter or the underlying catalog
+// changes. Was previously static markup; main.js calls window.beatList.
+// rebuild() after data loads, the same way it drives the carousel.
 //
 // Each row, always visible:
 //   ▶ play · Title · Artist · Price/Free · Time · ⓘ info · ★ bookmark
@@ -16,7 +17,7 @@
 
 (function () {
   const tbody = document.querySelector('.tracklist tbody');
-  if (!tbody || typeof beatBank === 'undefined') return;
+  if (!tbody || typeof filteredBeats === 'undefined') return;
 
   // Durations are read lazily from the audio and cached, since the beat
   // rows do not carry a stored length yet.
@@ -156,11 +157,30 @@
       return;
     }
 
-    // No buy link yet → fall back to contacting the producer (the report's
-    // correspondence path). Messaging isn't built, so this is a stub that
-    // makes the beat actionable rather than a dead end.
+    // No buy link yet → fall back to contacting the producer directly. On
+    // your own beat there's no one to message, so say so instead of
+    // offering a button that can only ever fail.
+    const session = await api?.getSession?.().catch(() => null);
+    if (session?.id && session.id === item.producerId) {
+      const note = document.createElement('span');
+      note.className = 'action-note';
+      note.textContent = 'This is your beat — add a price to make it buyable.';
+      host.appendChild(note);
+      return;
+    }
+
     const btn = actionButton('Message producer', 'buy');
-    btn.addEventListener('click', () => flash(host, 'Messaging is coming soon — this beat isn’t for sale yet.'));
+    btn.addEventListener('click', async () => {
+      if (!item.producerId) {
+        flash(host, 'This beat has no producer on file yet.');
+        return;
+      }
+      try {
+        await api.startDm?.(item.producerId, item.artist || 'producer');
+      } catch (e) {
+        flash(host, e.message);
+      }
+    });
     host.appendChild(btn);
   }
 
@@ -243,7 +263,16 @@
 
   function build() {
     tbody.innerHTML = '';
-    beatBank.forEach((item, i) => tbody.appendChild(buildRow(item, i)));
+
+    if (filteredBeats.length === 0) {
+      const tr = document.createElement('tr');
+      tr.className = 'tracklist-empty-row';
+      tr.innerHTML = '<td colspan="7">No beats match the current filters.</td>';
+      tbody.appendChild(tr);
+      return;
+    }
+
+    filteredBeats.forEach((item, i) => tbody.appendChild(buildRow(item, i)));
   }
 
   build();

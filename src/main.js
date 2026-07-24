@@ -20,6 +20,7 @@ import { tagBeat as runTagger, canTagInBrowser, extractPeaks } from './tagger.js
 import {
   buildBuyUrl, claimPendingOrders, listPurchases, ownsBeat,
 } from './purchases-repo.js';
+import { initChatUI, startDm } from './chat-ui.js';
 
 // In demo mode the whole backend is replaced by an in-memory store and the
 // app boots into a separate path (see initDemo below). Everything after this
@@ -81,6 +82,7 @@ window.beatboxApi = {
   reloadBeats: loadBeats,
   RIGHTS_WARRANTY_TEXT,
   FREE_TERMS_TEXT,
+  startDm,
 };
 
 // When someone signs in, attach any purchases that were waiting on their
@@ -122,6 +124,11 @@ async function loadBeats() {
 
   syncInto(window.beatBank, beats);
 
+  // filteredBeats is what the views actually render; recompute it from the
+  // freshly-synced beatBank before rebuilding, or a rebuild after upload/
+  // reload would silently show stale (or emptied) data.
+  window.beatFilters?.apply?.();
+
   // Re-render whichever views are already built.
   window.beatCarousel?.rebuild?.();
   window.beatList?.rebuild?.();
@@ -130,6 +137,7 @@ async function loadBeats() {
 }
 
 initAuthUI();
+initChatUI();
 loadBeats();
 
 } // end initReal

@@ -17,7 +17,7 @@
   align-items: center;
   gap: 6px;
 
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   color: var(--text);
 }
@@ -103,7 +103,7 @@
   gap: 12px;
   padding: 22px 24px;
 
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
   color: var(--text);
   background: var(--bg);
@@ -178,7 +178,7 @@
   max-width: 300px;
   padding: 8px 13px;
 
-  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   color: var(--text);
   background: var(--bg);

@@ -1,3 +1,39 @@
+@font-face {
+  font-family: 'Univers';
+  src: url('/font/univers/UniversLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers';
+  src: url('/font/univers/UniversRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers';
+  src: url('/font/univers/UniversBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers Condensed';
+  src: url('/font/univers/UniversCnRg.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Univers Condensed';
+  src: url('/font/univers/UniversCnBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -7,9 +43,6 @@
   --text: #111111;
   --muted: #888;
   --accent: #000000;
-  --top-h: 5vh;
-  --side-w: 56px;
-  --skew: 5vh;
 }
 
 [data-theme="dark"] {
@@ -55,17 +88,16 @@
   fill: #e0e0e0;
 }
 
-/* Wordmark in the top bar. Sized in viewBox units; bold and tightly stacked
-   so "BEAT / BOX" reads as one mark. Inherits the theme via the text rule
-   above (dark mode flips it to #e0e0e0). */
+/* Wordmark in the top bar. Sized in viewBox units; lowercase, thin, and
+   stretched horizontally so "beat / box" reads as a wide, understated mark.
+   Inherits the theme via the text rule above (dark mode flips it to
+   #e0e0e0). */
 svg.layout .logo-word {
-  font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", Arial, sans-serif;
   font-weight: 300;
   font-size: 4.4px;
   letter-spacing: -0.15px;
   fill: #111;
-  /* Stretch the glyphs horizontally for a wide, elongated wordmark. Scaled
-     about each text element's left edge so it grows rightward in place. */
   transform-box: fill-box;
   transform-origin: left center;
   transform: scaleX(1.8);
@@ -158,310 +190,10 @@ svg.layout .bottom-panel g:has(.next) * {
 [data-theme="dark"] .window-titlebar__close:hover { background: #0e0e0e; color: #c8ff00; }
 [data-theme="dark"] .upload-form__submit { background: #0e0e0e; color: #e0e0e0; border-color: #c8ff00; }
 [data-theme="dark"] .upload-form__submit:hover  { background: #1a1a1a; }
-[data-theme="dark"] .transport__btn { background: radial-gradient(circle at 40% 35%, #2a2a2a, #111); color: #c8ff00; box-shadow: 0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05); }
-[data-theme="dark"] .transport__slider { background: linear-gradient(to right, #333, #1a1a1a); }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* ── Top navbar ── */
-nav.top {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: var(--top-h);
-  background: var(--accent);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  padding: 0 24px 0 calc(var(--skew) + 24px);
-  /*
-    Shape from sketch (all coords as % of width, rows of y):
-      top-left:     skew offset, 0%
-      top-right:    100%, 0%
-      step down-right corner: 100%, 100%
-      step notch:   ~62%, 100%   →  ~60%, 50%  →  ~58%, 100%  (the small step)
-      bottom-left:  0%, 100%
-      angled back:  skew, 0%
-    Simplified with clip-path using calc values.
-    The "step" notch sits at roughly 60% from left in the sketch.
-  */
-  clip-path: polygon(
-    var(--skew) 0%,        /* top-left, after angled edge */
-    100% 0%,               /* top-right */
-    100% 100%,             /* bottom-right full height */
-    62% 100%,              /* step: bottom of upper bar, right side */
-    60% 50%,               /* step: the diagonal connecting down */
-    58% 100%,              /* step: bottom of lower bar, left side */
-    0% 100%,               /* bottom-left */
-    0% 100%                /* close */
-  );
-}
-
-nav.top .logo {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: #000;
-  text-decoration: none;
-  margin-right: auto;
-}
-
-nav.top .btn {
-  background: none;
-  border: 1px solid rgba(0,0,0,0.3);
-  color: #000;
-  padding: 4px 12px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-nav.top .btn.primary {
-  background: #000;
-  color: var(--accent);
-  border-color: #000;
-  font-weight: 700;
-}
-
-/* ── Side navbar ── */
-nav.side {
-  position: fixed;
-  top: var(--top-h);
-  left: 0;
-  bottom: 0;
-  width: var(--side-w);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 0;
-  gap: 4px;
-  z-index: 90;
-}
-
-nav.side .icon-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--muted);
-  background: none;
-  border: none;
-  transition: background 0.12s, color 0.12s;
-  position: relative;
-}
-
-nav.side .icon-btn:hover,
-nav.side .icon-btn.active {
-  background: var(--border);
-  color: var(--text);
-}
-
-nav.side .icon-btn svg { width: 20px; height: 20px; }
-
-nav.side .icon-btn .tooltip {
-  position: absolute;
-  left: calc(var(--side-w) - 4px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  color: var(--text);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.1s;
-}
-
-nav.side .icon-btn:hover .tooltip { opacity: 1; }
-
-/* ── Main ── */
-main {
-  margin-top: var(--top-h);
-  margin-left: var(--side-w);
-  padding: 32px 32px 0;
-  height: calc(100vh - var(--top-h));
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-/* ── Tracklist ── */
-.tracklist {
-  list-style: none;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.track {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: background 0.1s;
-  border-bottom: 1px solid var(--border);
-}
-
-.track:first-child { border-top: 1px solid var(--border); }
-.track:hover { background: var(--surface); }
-.track.active { background: var(--surface); }
-.track.active .track-name { color: var(--accent); }
-
-.track-num {
-  width: 18px;
-  text-align: right;
-  color: var(--muted);
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.track-name {
-  flex: 1;
-  font-size: 14px;
-  transition: color 0.1s;
-}
-
-.star {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--muted);
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  transition: color 0.12s;
-  flex-shrink: 0;
-}
-
-.star svg { width: 17px; height: 17px; }
-.star:hover { color: var(--text); }
-.star.starred svg { fill: var(--accent); stroke: var(--accent); }
-
-.artist {
-  font-size: 13px;
-  color: var(--muted);
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: color 0.12s;
-}
-
-.artist:hover { color: var(--text); }
-
-/* ── Player ── */
-.player {
-  padding: 20px 0 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 25vw;
-  align-self: center;
-}
-
-.player-track-info {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-}
-
-.player-track-name {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.player-artist-name {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.volume-bar {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 140px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--border);
-  outline: none;
-  cursor: pointer;
-  display: block;
-  margin: 0 auto;
-}
-
-.volume-bar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--text);
-  cursor: pointer;
-}
-
-.volume-bar::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--text);
-  border: none;
-  cursor: pointer;
-}
-
-.player-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.ctrl-btn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 6px;
-  display: flex;
-  align-items: center;
-  border-radius: 4px;
-  transition: color 0.12s;
-}
-
-.ctrl-btn svg { width: 20px; height: 20px; }
-.ctrl-btn:hover { color: var(--text); }
-
-.ctrl-btn.play {
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  justify-content: center;
-}
-
-.ctrl-btn.play:hover { background: var(--accent); color: #000; }
 
 /* App-specific styles extracted from index.html */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); transition: background 0.2s; }
+body { width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); transition: background 0.2s; font-family: 'Univers', -apple-system, "Helvetica Neue", Arial, sans-serif; }
 svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
 
 .site-credit {
@@ -469,12 +201,13 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   left: 10px;
   bottom: 6px;
   z-index: 80;
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 9px;
   letter-spacing: 0.06em;
   color: var(--muted);
   pointer-events: none;
 }
+
 .list-container {
   position: fixed;
   border: 3px solid #000000;
@@ -483,7 +216,7 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
   overflow-y: scroll;
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
 }
 .carousel-container {
@@ -494,23 +227,28 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
   overflow: hidden;
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
   perspective: 1100px;
 }
-/* The upload window floats over the site as a movable desktop window — the
+/* Positioning/sizing only — .upload-container__box's own appearance
+ * (border, background, overflow, shadow) lives in upload.css, the
+ * purpose-built file for this component, so there is one place to look
+ * for "what does the upload window look like" instead of two files
+ * disagreeing about it.
+ *
+ * The upload window floats over the site as a movable desktop window — the
  * rest of the app stays live while it's open. So the container is a pure
  * positioning layer that must NOT catch clicks: pointer-events pass through
  * it to whatever is beneath (carousel, list, transport). Only the box itself
- * is interactive. The box carries the window's own border/background — the
- * container no longer frames it. */
+ * is interactive (pointer-events: auto, set in upload.css). */
 .upload-container {
   position: fixed;
   left: 9%;
   top: 21.5%;
   width: calc(90% - 7%);
   height: calc(67% - 23.5%);
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-family: 'Univers', -apple-system, "Helvetica Neue", sans-serif;
   font-size: 11px;
   z-index: 10000;
   display: flex;
@@ -518,28 +256,6 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   justify-content: center;
   pointer-events: none;   /* clicks fall through the empty area to the site */
 }
-.upload-container__box {
-  width: 100%;
-  height: 100%;
-  border: 3px solid #000000;
-  background: white;
-  overflow: hidden;   /* title bar stays put; the form scrolls within */
-  -webkit-overflow-scrolling: touch;
-  touch-action: auto;
-  padding: 0;
-  pointer-events: auto;   /* the window itself is interactive */
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-}
-/* Override global SVG sizing for SVGs inside upload box so they stay bounded */
-.upload-container__box svg {
-  position: static;
-  width: 100%;
-  height: auto; /* allow svg to be taller than box so box can scroll when content exceeds */
-  display: block;
-  max-width: 100%;
-}
-/* Let touches on the SVG pass through to the scroll container so swipes scroll the box */
-.upload-container__box svg { pointer-events: none; }
 .carousel-item {
   position: absolute;
   left: 50%;
@@ -712,60 +428,3 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
 [data-theme="dark"] .track-action:hover { background: #a6d400; }
 [data-theme="dark"] .track-action--get { background: #2ea44f; border-color: #2ea44f; color: #fff; }
 [data-theme="dark"] .action-note { color: #777; }
-.transport {
-  position: fixed;
-  left: 32%;
-  top: 71%;
-  width: calc(66% - 32%);
-  height: calc(90% - 71%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: transparent;
-}
-.transport__btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  background: radial-gradient(circle at 40% 35%, #ffffff, #b0b0b0);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.8);
-  color: #333;
-}
-.transport__btn:active {
-  background: radial-gradient(circle at 40% 35%, #d0d0d0, #888);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
-}
-.transport__volume {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: 10px;
-  color: #666;
-  font-size: 11px;
-}
-.transport__slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 80px;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(to right, #c0c0c0, #e8e8e8);
-  outline: none;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
-}
-.transport__slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #ffffff, #a0a0a0);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  cursor: pointer;
-}

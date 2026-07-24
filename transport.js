@@ -173,7 +173,11 @@
 
   function currentTrack() {
     const idx = (window.beatCarousel ? window.beatCarousel.currentIndex : 0);
-    return (typeof beatBank !== 'undefined' && beatBank[idx]) ? beatBank[idx] : null;
+    // Indexes into filteredBeats, not the raw beatBank — list-view.js and
+    // carousel.js both render (and index) the filtered subset, so this must
+    // agree with them or "play row 2" and "play carousel item 2" would
+    // diverge whenever a filter is active.
+    return (typeof filteredBeats !== 'undefined' && filteredBeats[idx]) ? filteredBeats[idx] : null;
   }
 
   function loadTrack(track) {

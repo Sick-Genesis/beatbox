@@ -1,15 +1,17 @@
 // carousel.js
 //
-// Renders beatBank (see beat-data.js) into .carousel-container as a
+// Renders filteredBeats (see filter-state.js) into .carousel-container as a
 // coverflow-style carousel: the centered item sits flat, and items on
 // either side are tilted in 3D (rotateY) and pushed back/scaled down,
 // giving the impression of a wheel turning as you move through items.
+// filteredBeats is a live subset of beatBank; rebuild() re-renders it
+// whenever the filter or the underlying catalog changes.
 
 (function () {
   const container = document.querySelector('.carousel-container');
-  if (!container || typeof beatBank === 'undefined') return;
+  if (!container || typeof filteredBeats === 'undefined') return;
 
-  const items = beatBank;
+  const items = filteredBeats;
   let currentIndex = 0;
 
   // Tuning for the tilt/circular-motion effect
@@ -29,6 +31,14 @@
 
   function build() {
     container.innerHTML = '';
+
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'carousel-empty';
+      empty.textContent = 'No beats match the current filters.';
+      container.appendChild(empty);
+      return;
+    }
 
     items.forEach((item, i) => {
       const el = document.createElement('div');
@@ -123,6 +133,7 @@
 
   function goTo(index) {
     const n = items.length;
+    if (n === 0) { currentIndex = 0; return; } // nothing matches the filter
     const newIndex = ((index % n) + n) % n;
     if (newIndex !== currentIndex) {
       playScrollSound();

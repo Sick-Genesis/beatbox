@@ -19,6 +19,10 @@ export async function initDemo() {
   const beats = await store.fetchBeats();
   if (Array.isArray(window.beatBank)) {
     window.beatBank.splice(0, window.beatBank.length, ...beats);
+    // filteredBeats (not beatBank) is what carousel.js/list-view.js actually
+    // render and what transport.js indexes into — recompute it or the demo
+    // catalog stays permanently empty behind the filter system.
+    window.beatFilters?.apply?.();
     window.beatCarousel?.rebuild?.();
     window.beatList?.rebuild?.();
   }
@@ -66,6 +70,7 @@ export async function initDemo() {
     const fresh = await store.fetchBeats();
     if (!Array.isArray(window.beatBank)) return;
     window.beatBank.splice(0, window.beatBank.length, ...fresh);
+    window.beatFilters?.apply?.();
     window.beatCarousel?.rebuild?.();
     window.beatList?.rebuild?.();
   }
