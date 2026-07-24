@@ -1,9 +1,10 @@
 // list-view.js
 //
-// Renders beatBank into the .tracklist table, the counterpart to
-// carousel.js. Was previously static markup; main.js calls
-// window.beatList.rebuild() after data loads, the same way it drives the
-// carousel.
+// Renders filteredBeats (see filter-state.js) into the .tracklist table, the
+// counterpart to carousel.js. filteredBeats is a live subset of beatBank;
+// rebuild() re-renders it whenever the filter or the underlying catalog
+// changes. Was previously static markup; main.js calls window.beatList.
+// rebuild() after data loads, the same way it drives the carousel.
 //
 // Each row, always visible:
 //   ▶ play · Title · Artist · Price/Free · Time · ⓘ info · ★ bookmark
@@ -16,7 +17,7 @@
 
 (function () {
   const tbody = document.querySelector('.tracklist tbody');
-  if (!tbody || typeof beatBank === 'undefined') return;
+  if (!tbody || typeof filteredBeats === 'undefined') return;
 
   // Durations are read lazily from the audio and cached, since the beat
   // rows do not carry a stored length yet.
@@ -262,7 +263,16 @@
 
   function build() {
     tbody.innerHTML = '';
-    beatBank.forEach((item, i) => tbody.appendChild(buildRow(item, i)));
+
+    if (filteredBeats.length === 0) {
+      const tr = document.createElement('tr');
+      tr.className = 'tracklist-empty-row';
+      tr.innerHTML = '<td colspan="7">No beats match the current filters.</td>';
+      tbody.appendChild(tr);
+      return;
+    }
+
+    filteredBeats.forEach((item, i) => tbody.appendChild(buildRow(item, i)));
   }
 
   build();

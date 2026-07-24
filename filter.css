@@ -1,0 +1,140 @@
+/* filter.css
+   The filter panel opened from the header's funnel icon.
+
+   Same recipe as auth.css/chat.css: sharp 1px borders, no radius, no
+   shadow, var(--text)/var(--muted)/var(--accent)/var(--border), acid-green
+   accent in dark mode, uppercase letter-spaced micro-labels. */
+
+.filter-panel {
+  position: fixed;
+  z-index: 950;
+  width: 240px;
+  display: none;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--text);
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+[data-theme="dark"] .filter-panel { border-color: var(--accent); }
+.filter-panel.is-open { display: flex; }
+
+.filter-panel__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.filter-panel__reset {
+  padding: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.filter-panel__reset:hover { color: var(--text); }
+
+.filter-panel__body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 12px; }
+
+.filter-section__label {
+  margin-bottom: 6px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.filter-empty { font-size: 11px; color: var(--muted); }
+
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-chip {
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.filter-chip:hover { border-color: var(--text); }
+.filter-chip.is-active {
+  color: #fff;
+  background: #111;
+  border-color: #111;
+}
+[data-theme="dark"] .filter-chip.is-active {
+  color: #0e0e0e;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.filter-toggle-row { display: flex; border: 1px solid var(--border); }
+.filter-option {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+}
+.filter-option:last-child { border-right: 0; }
+.filter-option:hover { background: var(--surface); }
+.filter-option.is-active {
+  color: #fff;
+  background: #111;
+}
+[data-theme="dark"] .filter-option.is-active {
+  color: #0e0e0e;
+  background: var(--accent);
+}
+
+.filter-range-row { display: flex; align-items: center; gap: 6px; }
+.filter-range-row span { color: var(--muted); font-size: 11px; }
+.filter-range-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 6px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  outline: none;
+}
+.filter-range-row input:focus { border-color: var(--text); }
+[data-theme="dark"] .filter-range-row input:focus { border-color: var(--accent); }
+/* Hide the native spinner so the field reads like the rest of the app's
+   plain inputs. */
+.filter-range-row input::-webkit-outer-spin-button,
+.filter-range-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.filter-range-row input[type="number"] { -moz-appearance: textfield; }
+
+/* Empty-state rows/cells in the two views, shown when a filter matches
+   nothing. */
+.carousel-empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--muted, #999);
+  font-size: 12px;
+  text-align: center;
+}
+.tracklist-empty-row td {
+  padding: 16px 8px;
+  text-align: center;
+  color: #999;
+  font-size: 11px;
+}
+[data-theme="dark"] .tracklist-empty-row td { color: #666; }

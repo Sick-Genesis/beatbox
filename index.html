@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="upload.css">
   <link rel="stylesheet" href="auth.css">
   <link rel="stylesheet" href="chat.css">
+  <link rel="stylesheet" href="filter.css">
 </head>
 <body>
   <svg class="layout" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -87,6 +88,14 @@
           <rect x="72.5" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
           <title>Carousel mode</title>
           <rect x="73.75" y="15.25" width="3.5" height="3.5" fill="none" stroke="black" stroke-width="0.3"/>
+        </g>
+        <!-- filter: funnel icon -->
+        <g class="btn filter-toggle keep-aspect" data-cx="56" data-cy="17" style="cursor:pointer">
+          <title>Filter beats</title>
+          <rect x="53" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
+          <polygon points="54.2,15.2 57.8,15.2 56.6,17.2 56.6,18.5 55.4,18.8 55.4,17.2" fill="none" stroke="black" stroke-width="0.3"/>
+          <!-- dot shows when a filter is active -->
+          <circle class="filter-toggle__dot" cx="58.2" cy="14.8" r="0.55" fill="hotpink" style="display:none"/>
         </g>
         <!-- dark mode toggle: sun/moon icon -->
         <g class="btn theme-toggle keep-aspect" data-cx="45" data-cy="17" style="cursor:pointer">
@@ -315,9 +324,11 @@
   <script src="aspect-fix.js"></script>
   <script src="theme-toggle.js"></script>
   <script src="beat-data.js"></script>
+  <script src="filter-state.js"></script>
   <script src="carousel.js"></script>
   <script src="list-view.js"></script>
   <script src="view-toggle.js"></script>
+  <script src="filter-ui.js"></script>
   <script src="upload-toggle.js"></script>
   <script src="upload.js"></script>
   <script src="transport.js"></script>

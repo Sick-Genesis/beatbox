@@ -111,6 +111,11 @@ async function loadBeats() {
 
   syncInto(window.beatBank, beats);
 
+  // filteredBeats is what the views actually render; recompute it from the
+  // freshly-synced beatBank before rebuilding, or a rebuild after upload/
+  // reload would silently show stale (or emptied) data.
+  window.beatFilters?.apply?.();
+
   // Re-render whichever views are already built.
   window.beatCarousel?.rebuild?.();
   window.beatList?.rebuild?.();
