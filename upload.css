@@ -1,27 +1,52 @@
 /* upload.css */
 
-/* Default hidden — upload-toggle.js adds .is-visible to show */
+/* Visibility is driven entirely by upload-toggle.js setting the inline
+   style.display ('flex'/'none') — not a class. An inline style always wins
+   the cascade over anything here, so there is no .is-visible in the
+   markup; a rule for it would be dead weight. This just sets the base
+   layout for whichever display value JS applies.
+   overflow-y here (not on the box) is deliberate: the CONTAINER scrolls
+   when content overflows, not the box, so the title bar and its drag
+   handle stay reachable rather than scrolling out of view. */
 .upload-container {
-  display: none;
   overflow-y: auto;
   align-items: flex-start;
 }
-.upload-container.is-visible {
-  display: flex;
-  align-items: flex-start; /* center breaks scroll when child overflows */
-  overflow-y: auto;        /* container scrolls, not the inner box */
-}
 
+/* The upload window floats over the site as a movable desktop window — the
+   rest of the app stays live while it's open. So .upload-container (the
+   positioning layer, styled in style.css) is pointer-events:none and this
+   box is the only interactive, visible part: border, background, and
+   shadow all live here rather than on the container, and overflow is
+   hidden so the title bar stays put while the form scrolls within it. */
 .upload-container__box {
   width: 100%;
   height: 100%;
-  border: 2px solid #000;
+  border: 3px solid #000;
   background: white;
-  overflow: visible;       /* let the container above handle scroll */
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: auto;
   padding: 0;              /* the title bar and form manage their own padding */
   display: flex;
   flex-direction: column;
+  pointer-events: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
+
+/* The artwork-drop placeholder is inline SVG; without this it inherits the
+   global full-viewport `svg { position: fixed; ... }` from style.css and
+   escapes the box entirely. */
+.upload-container__box svg {
+  position: static;
+  width: 100%;
+  height: auto; /* may be taller than the box so it can scroll, not crop */
+  display: block;
+  max-width: 100%;
+}
+/* Let touches on the SVG pass through to the scroll container so swipes
+   scroll the box instead of being swallowed by the graphic. */
+.upload-container__box svg { pointer-events: none; }
 
 /* ── Window title bar ── */
 .window-titlebar {

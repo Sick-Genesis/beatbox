@@ -498,12 +498,17 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   font-size: 11px;
   perspective: 1100px;
 }
-/* The upload window floats over the site as a movable desktop window — the
+/* Positioning/sizing only — .upload-container__box's own appearance
+ * (border, background, overflow, shadow) lives in upload.css, the
+ * purpose-built file for this component, so there is one place to look
+ * for "what does the upload window look like" instead of two files
+ * disagreeing about it.
+ *
+ * The upload window floats over the site as a movable desktop window — the
  * rest of the app stays live while it's open. So the container is a pure
  * positioning layer that must NOT catch clicks: pointer-events pass through
  * it to whatever is beneath (carousel, list, transport). Only the box itself
- * is interactive. The box carries the window's own border/background — the
- * container no longer frames it. */
+ * is interactive (pointer-events: auto, set in upload.css). */
 .upload-container {
   position: fixed;
   left: 9%;
@@ -518,28 +523,6 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   justify-content: center;
   pointer-events: none;   /* clicks fall through the empty area to the site */
 }
-.upload-container__box {
-  width: 100%;
-  height: 100%;
-  border: 3px solid #000000;
-  background: white;
-  overflow: hidden;   /* title bar stays put; the form scrolls within */
-  -webkit-overflow-scrolling: touch;
-  touch-action: auto;
-  padding: 0;
-  pointer-events: auto;   /* the window itself is interactive */
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-}
-/* Override global SVG sizing for SVGs inside upload box so they stay bounded */
-.upload-container__box svg {
-  position: static;
-  width: 100%;
-  height: auto; /* allow svg to be taller than box so box can scroll when content exceeds */
-  display: block;
-  max-width: 100%;
-}
-/* Let touches on the SVG pass through to the scroll container so swipes scroll the box */
-.upload-container__box svg { pointer-events: none; }
 .carousel-item {
   position: absolute;
   left: 50%;
