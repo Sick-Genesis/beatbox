@@ -77,7 +77,7 @@ function mountIntro() {
     <h2>You’re inside beatbox.</h2>
     <p>
       An interactive demo of a beat marketplace we are building, on fake ai-generated data.
-      You’re signed in as <b>@vmtslf</b>, a producer. Play beats, open a row for
+      You’re signed in as <b>@sila</b>, a producer. Play beats, open a row for
       licences, buy one, or upload your own. Nothing is saved;
       a refresh resets everything.
     </p>

@@ -18,7 +18,7 @@
 export const DEMO_USER = {
   id: "demo-user-0000-0000-0000-000000000001",
   email: "sila@beatbox.demo",
-  displayName: "vmtslf",
+  displayName: "sila",
   handle: "sila",
   role: "producer",
   isProducer: true,
