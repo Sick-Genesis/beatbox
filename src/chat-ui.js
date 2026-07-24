@@ -127,13 +127,13 @@ async function runSearch(query) {
   const users = await searchMessageableUsers(q);
   results.innerHTML = users.length
     ? users.map((u) => `
-        <button type="button" class="chat-result" data-id="${u.id}">
+        <button type="button" class="chat-result" data-id="${u.id}" data-handle="${escapeHtml(u.handle)}">
           @${escapeHtml(u.handle)}
         </button>`).join('')
     : '<p class="chat-panel__empty">No one found.</p>';
 
   results.querySelectorAll('.chat-result').forEach((btn) => {
-    btn.addEventListener('click', () => startDm(btn.dataset.id, btn.textContent.trim()));
+    btn.addEventListener('click', () => startDm(btn.dataset.id, btn.dataset.handle));
   });
 }
 
