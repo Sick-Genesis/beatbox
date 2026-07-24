@@ -71,14 +71,14 @@
         <g class="btn list-view keep-aspect" data-cx="67" data-cy="17" style="cursor:pointer">
           <rect x="64" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
           <title>List view</title>
-          <rect x="65.2" y="14.3" width="3.6" height="0.5" fill="black"/>
-          <rect x="65.2" y="16.6" width="3.6" height="0.5" fill="black"/>
-          <rect x="65.2" y="18.9" width="3.6" height="0.5" fill="black"/>
+          <rect x="65.5" y="15.3" width="3" height="0.5" fill="black"/>
+          <rect x="65.5" y="16.75" width="3" height="0.5" fill="black"/>
+          <rect x="65.5" y="18.2" width="3" height="0.5" fill="black"/>
         </g>
         <g class="btn carousel keep-aspect" data-cx="75.5" data-cy="17" style="cursor:pointer">
           <rect x="72.5" y="14" width="6" height="6" fill="#f3f3f3" stroke="black" stroke-width="0.2" rx="0.6"/>
           <title>Carousel mode</title>
-          <rect x="74" y="15" width="2.9" height="4" fill="none" stroke="black" stroke-width="0.3"/>
+          <rect x="73.75" y="15.25" width="3.5" height="3.5" fill="none" stroke="black" stroke-width="0.3"/>
         </g>
         <!-- dark mode toggle: sun/moon icon -->
         <g class="btn theme-toggle keep-aspect" data-cx="45" data-cy="17" style="cursor:pointer">
@@ -112,7 +112,14 @@
         stroke-width="0.3"
       />
       <line x1="42" y1="71" x2="56" y2="71" stroke="black" stroke-width="0.4"/>
-      <circle id="slider-knob" class="keep-aspect" data-cx="49" data-cy="71" cx="49" cy="71" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:ew-resize"/>
+      <!-- Invisible wide hit-line so the whole volume track is clickable, not
+           just the knob. Click anywhere to jump the knob there. -->
+      <line id="slider-track" x1="42" y1="71" x2="56" y2="71" stroke="transparent" stroke-width="4" style="cursor:pointer"/>
+      <!-- NOT keep-aspect: that class counter-scales horizontally around a
+           fixed origin (data-cx=49), which dragged the rendered knob back
+           toward centre so it never reached the track ends. The knob's X
+           position is its whole function, so it must map straight through. -->
+      <circle id="slider-knob" data-cy="71" cx="49" cy="71" r="1.2" fill="white" stroke="black" stroke-width="0.2" style="cursor:pointer"/>
       <!-- prev -->
       <g class="keep-aspect" data-cx="42" data-cy="80.5">
         <circle class="prev" cx="42" cy="80.5" r="3" fill="white" stroke="black" stroke-width="0.2"/>
@@ -276,18 +283,24 @@
 
   <script>
     const knob = document.getElementById('slider-knob');
+    const track = document.getElementById('slider-track');
     const svg  = document.querySelector('svg.layout');
     const minX = 42, maxX = 56;
     let dragging = false;
 
-    knob.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
-    window.addEventListener('mouseup',   () => { dragging = false; });
-    window.addEventListener('mousemove', e => {
-      if (!dragging) return;
+    // Move the knob to wherever the pointer is along the track (clamped).
+    const setFromEvent = e => {
       const rect = svg.getBoundingClientRect();
       const svgX = (e.clientX - rect.left) / rect.width * 100;
       knob.setAttribute('cx', Math.min(maxX, Math.max(minX, svgX)));
-    });
+    };
+
+    knob.addEventListener('mousedown',  e => { dragging = true; e.preventDefault(); });
+    // Clicking anywhere on the track jumps the knob there and starts a drag,
+    // so the volume is settable without grabbing the small knob first.
+    track.addEventListener('mousedown', e => { dragging = true; setFromEvent(e); e.preventDefault(); });
+    window.addEventListener('mouseup',   () => { dragging = false; });
+    window.addEventListener('mousemove', e => { if (dragging) setFromEvent(e); });
   </script>
   <script src="aspect-fix.js"></script>
   <script src="theme-toggle.js"></script>
