@@ -58,16 +58,12 @@
       artist.textContent = item.artist;
 
       el.append(artwork, title, artist);
-      // Click a side item to bring it to centre; click the already-centred
-      // item to play it. This is the coverflow convention — navigation clicks
-      // rotate the wheel, and a click on the front item starts playback,
-      // rather than every click blasting audio.
+      // Clicking any track centres it and starts it playing — one click, not
+      // two. goTo() only plays the scroll sound when the index actually
+      // changes, so clicking the already-centred item doesn't re-trigger it.
       el.addEventListener('click', () => {
-        if (i === currentIndex) {
-          window.beatTransport?.play?.();
-        } else {
-          goTo(i);
-        }
+        goTo(i);
+        window.beatTransport?.play?.();
       });
       container.appendChild(el);
     });
