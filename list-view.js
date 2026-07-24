@@ -156,14 +156,29 @@
       return;
     }
 
-    // No buy link yet → fall back to contacting the producer directly.
+    // No buy link yet → fall back to contacting the producer directly. On
+    // your own beat there's no one to message, so say so instead of
+    // offering a button that can only ever fail.
+    const session = await api?.getSession?.().catch(() => null);
+    if (session?.id && session.id === item.producerId) {
+      const note = document.createElement('span');
+      note.className = 'action-note';
+      note.textContent = 'This is your beat — add a price to make it buyable.';
+      host.appendChild(note);
+      return;
+    }
+
     const btn = actionButton('Message producer', 'buy');
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       if (!item.producerId) {
         flash(host, 'This beat has no producer on file yet.');
         return;
       }
-      api.startDm?.(item.producerId, item.artist || 'producer');
+      try {
+        await api.startDm?.(item.producerId, item.artist || 'producer');
+      } catch (e) {
+        flash(host, e.message);
+      }
     });
     host.appendChild(btn);
   }

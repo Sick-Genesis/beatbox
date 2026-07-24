@@ -261,16 +261,26 @@ async function openConversation(conversationId, otherName) {
   });
 }
 
-/** Start (or resume) a DM from a user id, e.g. from search results or "message the producer". */
+/**
+ * Start (or resume) a DM from a user id, e.g. from search results or
+ * "message the producer". Throws with a caller-facing message on failure
+ * (not signed in, messaging yourself, the user no longer exists, etc.) so
+ * callers like list-view.js's flash() can show it instead of it vanishing
+ * into the console.
+ */
 export async function startDm(otherUserId, otherName) {
-  try {
-    const conversation = await openDm(otherUserId);
-    ensurePanel();
-    panel.classList.add('is-open');
-    await openConversation(conversation.id, otherName || 'producer');
-  } catch (e) {
-    console.error('[beatbox] Could not open DM:', e.message);
-  }
+  if (!isConfigured) throw new Error('Messaging is not available right now.');
+
+  // Cheap local check before round-tripping to the RPC: the common case is
+  // an anonymous visitor clicking "message producer", and the friendlier
+  // copy for that belongs here rather than the server's generic auth error.
+  const session = await getSession();
+  if (!session) throw new Error('Sign in to message the producer.');
+
+  const conversation = await openDm(otherUserId);
+  ensurePanel();
+  panel.classList.add('is-open');
+  await openConversation(conversation.id, otherName || 'producer');
 }
 
 function closeDm() {
