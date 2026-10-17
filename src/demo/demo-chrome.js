@@ -108,7 +108,7 @@ function wireSidebarIcons(store) {
   // ★ is favourites (bookmarked beats), distinct from the library in the
   // account bar; the envelope is trade offers.
   addHit(svg, { cx: 2.5, cy: 27.8, label: "Favourites" }, () =>
-    openFavourites(),
+    openFavourites(store),
   );
   addHit(svg, { cx: 2.5, cy: 34.4, label: "Trade offers" }, () =>
     openOffers(store),
@@ -212,17 +212,10 @@ async function openLibrary(store) {
   });
 }
 
-function openFavourites() {
-  // Favourites are the beats starred with the row ★ in the list view. That
-  // toggles `.bookmark.starred` on a row; read those back to window.beatBank.
-  const starred = [];
-  document.querySelectorAll("tr.track-row").forEach((row) => {
-    if (row.querySelector(".bookmark.starred")) {
-      const i = Number(row.dataset.index);
-      const beat = window.beatBank?.[i];
-      if (beat) starred.push(beat);
-    }
-  });
+async function openFavourites(store) {
+  // Favourites are the beats starred with the ★ in the list or carousel. The
+  // store holds them by id, so this is right whatever the current filter.
+  const starred = await store.listFavourites();
 
   const rows = starred.length
     ? starred

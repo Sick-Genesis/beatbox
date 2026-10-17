@@ -290,6 +290,13 @@ export const DEMO_OWNED_BEAT_IDS = [
   "beat-0000-0000-0000-000000000008",
 ];
 
+// A couple of pre-starred beats so the favourites panel isn't empty on first
+// open. Starring is just a shortlist, so these don't overlap with owned beats.
+export const DEMO_FAVOURITE_BEAT_IDS = [
+  "beat-0000-0000-0000-000000000002",
+  "beat-0000-0000-0000-000000000005",
+];
+
 // One pending trade offer, incoming: northface offers their 'permafrost'
 // exclusive for the demo user's 'nightcrawler'. Drives the envelope badge and
 // a would-be offers inbox. Shape matches trades-repo OFFER_SELECT.

@@ -275,7 +275,32 @@ svg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
   background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 6px, #e2e2e2 6px, #e2e2e2 12px);
   margin-bottom: 6px;
   overflow: hidden;
+  position: relative;   /* anchors the favourite star */
 }
+/* Favourite star on the cover. Shown on the centred item, and on any item
+   that's already starred so favourites are visible around the wheel. */
+.carousel-item__fav {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 1;
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.carousel-item.is-active .carousel-item__fav,
+.carousel-item__fav.starred { opacity: 1; }
+.carousel-item__fav:hover { color: #111; }
+.carousel-item__fav.starred { color: hotpink; }
+[data-theme="dark"] .carousel-item__fav { color: rgba(255, 255, 255, 0.55); }
+[data-theme="dark"] .carousel-item__fav:hover { color: #fff; }
+[data-theme="dark"] .carousel-item__fav.starred { color: var(--accent); }
 /* No artwork uploaded: a flat colour per track (hue set by carousel.js as
    --cover-hue, spread evenly around the wheel) instead of the grey stripe,
    so a catalog without artwork still reads as distinct covers. Same

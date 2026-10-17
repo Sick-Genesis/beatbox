@@ -60,6 +60,10 @@ export async function initDemo() {
     ownsBeat: store.ownsBeat,
     reloadBeats: reloadBeats,
 
+    isFavourite: store.isFavourite,
+    toggleFavourite: store.toggleFavourite,
+    listFavourites: store.listFavourites,
+
     RIGHTS_WARRANTY_TEXT,
     FREE_TERMS_TEXT,
   };
@@ -75,6 +79,18 @@ export async function initDemo() {
     window.beatList?.rebuild?.();
   }
   window.beatboxDemo = { store, reloadBeats };
+
+  // Relay store changes to the classic scripts as a DOM event, so the list
+  // and the carousel both repaint a star whichever one was clicked.
+  store.onFavouriteChange((id, on) => {
+    document.dispatchEvent(new CustomEvent('beat:favourite', { detail: { id, on } }));
+  });
+
+  // The first render above ran before beatboxApi existed, so its stars
+  // couldn't ask the store. Paint the seeded favourites now.
+  (await store.listFavourites()).forEach((b) => {
+    document.dispatchEvent(new CustomEvent('beat:favourite', { detail: { id: b.id, on: true } }));
+  });
 
   // Demo chrome: the DEMO badge, the signed-in bar, the one-time intro
   // notice, and the "in development" markers on unbuilt areas (offers,

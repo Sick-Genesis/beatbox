@@ -65,6 +65,24 @@
         artwork.classList.add('carousel-item__artwork--placeholder');
       }
 
+      // Favourite star in the cover's corner. Same store and same
+      // 'beat:favourite' event as the list's ★, so the two always agree.
+      const star = document.createElement('button');
+      star.className = 'carousel-item__fav';
+      star.setAttribute('aria-label', `Favourite ${item.title}`);
+      star.setAttribute('aria-pressed', 'false');
+      star.dataset.favId = item.id;
+      star.textContent = '☆';
+      window.beatboxApi?.isFavourite?.(item.id)
+        .then((on) => paintStar(star, on))
+        .catch(() => {});
+      // Don't let the click fall through to the item (which centres + plays).
+      star.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavourite(item.id, star.classList.contains('starred'));
+      });
+      artwork.appendChild(star);
+
       const title = document.createElement('div');
       title.className = 'carousel-item__title';
       title.textContent = item.title;
@@ -84,6 +102,30 @@
       container.appendChild(el);
     });
   }
+
+  function paintStar(el, on) {
+    el.classList.toggle('starred', on);
+    el.textContent = on ? '★' : '☆';
+    el.setAttribute('aria-pressed', String(on));
+  }
+
+  // Mirrors list-view.js: through the store when it has favourites,
+  // otherwise a page-only flip announced by the same event.
+  async function toggleFavourite(id, wasOn) {
+    const api = window.beatboxApi;
+    if (api?.toggleFavourite) {
+      try { await api.toggleFavourite(id); } catch { /* star stays as it was */ }
+      return;
+    }
+    document.dispatchEvent(new CustomEvent('beat:favourite', { detail: { id, on: !wasOn } }));
+  }
+
+  document.addEventListener('beat:favourite', (e) => {
+    const { id, on } = e.detail;
+    container.querySelectorAll('.carousel-item__fav').forEach((el) => {
+      if (el.dataset.favId === id) paintStar(el, on);
+    });
+  });
 
   // Shortest signed distance from i to currentIndex, wrapping around
   // both ends of the list so the motion reads as circular.

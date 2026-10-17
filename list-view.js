@@ -213,7 +213,7 @@
       <td class="col-price">${priceLabel(item)}</td>
       <td class="col-time" data-time>—</td>
       <td class="col-info"><button class="row-info" aria-label="More info">ⓘ</button></td>
-      <td class="col-star"><button class="bookmark" aria-label="Bookmark">☆</button></td>`;
+      <td class="col-star"><button class="bookmark" aria-label="Favourite" aria-pressed="false">☆</button></td>`;
 
     tr.querySelector('.row-play').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -226,11 +226,16 @@
       toggleInfo(tr, item);
     });
 
+    // The star reflects the store, keyed by beat id, so it survives rebuilds
+    // and matches the carousel. Draw ☆ now and fill in once the store answers.
     const star = tr.querySelector('.bookmark');
+    star.dataset.favId = item.id;
+    window.beatboxApi?.isFavourite?.(item.id)
+      .then((on) => paintStar(star, on))
+      .catch(() => {});
     star.addEventListener('click', (e) => {
       e.stopPropagation();
-      const on = star.classList.toggle('starred');
-      star.textContent = on ? '★' : '☆';
+      toggleFavourite(item.id, star.classList.contains('starred'));
     });
 
     // Fill in duration once metadata loads (cached across rebuilds).
@@ -239,6 +244,31 @@
 
     return tr;
   }
+
+  function paintStar(el, on) {
+    el.classList.toggle('starred', on);
+    el.textContent = on ? '★' : '☆';
+    el.setAttribute('aria-pressed', String(on));
+  }
+
+  // Goes through the store when it has favourites (the demo); otherwise just
+  // flips it for this page. Either way the 'beat:favourite' event repaints
+  // every star for that beat, in this view and the carousel.
+  async function toggleFavourite(id, wasOn) {
+    const api = window.beatboxApi;
+    if (api?.toggleFavourite) {
+      try { await api.toggleFavourite(id); } catch { /* star stays as it was */ }
+      return;
+    }
+    document.dispatchEvent(new CustomEvent('beat:favourite', { detail: { id, on: !wasOn } }));
+  }
+
+  document.addEventListener('beat:favourite', (e) => {
+    const { id, on } = e.detail;
+    tbody.querySelectorAll('.bookmark').forEach((el) => {
+      if (el.dataset.favId === id) paintStar(el, on);
+    });
+  });
 
   function fillDuration(item, cell) {
     if (!item.audioUrl) return;

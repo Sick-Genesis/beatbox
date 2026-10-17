@@ -12,7 +12,7 @@
 
 import {
   DEMO_USER, DEMO_BEATS, DEMO_PURCHASES, DEMO_OWNED_BEAT_IDS, DEMO_OFFERS,
-  expandBeat,
+  DEMO_FAVOURITE_BEAT_IDS, expandBeat,
 } from './demo-data.js';
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -23,6 +23,7 @@ const state = {
   beats: DEMO_BEATS.map((b) => expandBeat(b)),
   purchases: clone(DEMO_PURCHASES),
   ownedBeatIds: new Set(DEMO_OWNED_BEAT_IDS),
+  favouriteBeatIds: new Set(DEMO_FAVOURITE_BEAT_IDS),
   offers: clone(DEMO_OFFERS),
 };
 
@@ -125,6 +126,41 @@ function fileUrl(file) {
     if (file instanceof File || file instanceof Blob) return URL.createObjectURL(file);
   } catch { /* not in a browser context */ }
   return null;
+}
+
+// ── Favourites ───────────────────────────────────────────────────────────────
+//
+// A per-session shortlist of beat ids. Keyed by id, not list position, so a
+// star survives filtering and re-renders and means the same beat in every view.
+
+const favouriteListeners = new Set();
+
+export async function isFavourite(beatId) {
+  return state.favouriteBeatIds.has(beatId);
+}
+
+// Flips the star and returns the new state (true = now a favourite).
+export async function toggleFavourite(beatId) {
+  const on = !state.favouriteBeatIds.has(beatId);
+  if (on) state.favouriteBeatIds.add(beatId);
+  else state.favouriteBeatIds.delete(beatId);
+  favouriteListeners.forEach((fn) => {
+    try { fn(beatId, on); } catch (e) { console.error(e); }
+  });
+  return on;
+}
+
+export async function listFavourites() {
+  return state.beats
+    .filter((b) => state.favouriteBeatIds.has(b.id))
+    .map((b) => clone(b));
+}
+
+// Lets a view that isn't the one clicked (e.g. the list while starring from
+// the carousel) redraw its star. Returns an unsubscribe function.
+export function onFavouriteChange(fn) {
+  favouriteListeners.add(fn);
+  return () => favouriteListeners.delete(fn);
 }
 
 // ── Purchases ────────────────────────────────────────────────────────────────
